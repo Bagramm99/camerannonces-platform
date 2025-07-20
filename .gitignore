@@ -1,0 +1,54 @@
+# ============================================
+# BACKEND (Spring Boot)
+# ============================================
+backend/target/
+backend/*.jar
+backend/*.war
+backend/*.nar
+backend/hs_err_pid*
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ============================================
+# FRONTEND (React)
+# ============================================
+frontend-web/node_modules/
+frontend-web/build/
+frontend-web/.env.local
+frontend-web/.env.development.local
+frontend-web/.env.test.local
+frontend-web/.env.production.local
+
+# ============================================
+# MOBILE (React Native)
+# ============================================
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/dist/
+mobile-app/.expo-shared/
+
+# ============================================
+# UPLOADS & FILES
+# ============================================
+uploads/
+*.tmp
+*.temp
