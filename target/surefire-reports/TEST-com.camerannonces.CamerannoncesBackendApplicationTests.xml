@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.camerannonces.CamerannoncesBackendApplicationTests" time="14.089" tests="10" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="22"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend\target\test-classes;C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend\target\classes;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.5.3\spring-boot-starter-data-jpa-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter\3.5.3\spring-boot-starter-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.5.3\spring-boot-starter-logging-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\ch\qos\logback\logback-classic\1.5.18\logback-classic-1.5.18.jar;C:\Users\Ngnimpea Durio\.m2\repository\ch\qos\logback\logback-core\1.5.18\logback-core-1.5.18.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\slf4j\jul-to-slf4j\2.0.17\jul-to-slf4j-2.0.17.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\yaml\snakeyaml\2.4\snakeyaml-2.4.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.5.3\spring-boot-starter-jdbc-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\zaxxer\HikariCP\6.3.0\HikariCP-6.3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-jdbc\6.2.8\spring-jdbc-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\orm\hibernate-core\6.6.18.Final\hibernate-core-6.6.18.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\common\hibernate-commons-annotations\7.0.3.Final\hibernate-commons-annotations-7.0.3.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\smallrye\jandex\3.2.0\jandex-3.2.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\bytebuddy\byte-buddy\1.17.6\byte-buddy-1.17.6.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\data\spring-data-jpa\3.5.1\spring-data-jpa-3.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\data\spring-data-commons\3.5.1\spring-data-commons-3.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-orm\6.2.8\spring-orm-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-context\6.2.8\spring-context-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-tx\6.2.8\spring-tx-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-beans\6.2.8\spring-beans-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\slf4j\slf4j-api\2.0.17\slf4j-api-2.0.17.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-aspects\6.2.8\spring-aspects-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\aspectj\aspectjweaver\1.9.24\aspectjweaver-1.9.24.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.5.3\spring-boot-starter-security-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-aop\6.2.8\spring-aop-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-config\6.5.1\spring-security-config-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-web\6.5.1\spring-security-web-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-expression\6.2.8\spring-expression-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.5.3\spring-boot-starter-validation-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.42\tomcat-embed-el-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.2.Final\hibernate-validator-8.0.2.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.5.3\spring-boot-starter-web-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.5.3\spring-boot-starter-json-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.19.1\jackson-datatype-jdk8-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.19.1\jackson-datatype-jsr310-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.19.1\jackson-module-parameter-names-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.5.3\spring-boot-starter-tomcat-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.42\tomcat-embed-core-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.42\tomcat-embed-websocket-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-web\6.2.8\spring-web-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\micrometer\micrometer-observation\1.15.1\micrometer-observation-1.15.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\micrometer\micrometer-commons\1.15.1\micrometer-commons-1.15.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-webmvc\6.2.8\spring-webmvc-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.3\jjwt-api-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.3\jjwt-impl-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.3\jjwt-jackson-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.19.1\jackson-databind-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.19.1\jackson-annotations-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.19.1\jackson-core-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\postgresql\postgresql\42.7.7\postgresql-42.7.7.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\checkerframework\checker-qual\3.49.3\checker-qual-3.49.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-devtools\3.5.3\spring-boot-devtools-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot\3.5.3\spring-boot-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.5.3\spring-boot-autoconfigure-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.5.3\spring-boot-starter-test-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-test\3.5.3\spring-boot-test-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.5.3\spring-boot-test-autoconfigure-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\minidev\json-smart\2.5.2\json-smart-2.5.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\minidev\accessors-smart\2.5.2\accessors-smart-2.5.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\ow2\asm\asm\9.7.1\asm-9.7.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\assertj\assertj-core\3.27.3\assertj-core-3.27.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\awaitility\awaitility\4.2.2\awaitility-4.2.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter\5.12.2\junit-jupiter-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.12.2\junit-jupiter-api-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\platform\junit-platform-commons\1.12.2\junit-platform-commons-1.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.12.2\junit-jupiter-params-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.12.2\junit-jupiter-engine-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\platform\junit-platform-engine\1.12.2\junit-platform-engine-1.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\mockito\mockito-core\5.17.0\mockito-core-5.17.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.6\byte-buddy-agent-1.17.6.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\mockito\mockito-junit-jupiter\5.17.0\mockito-junit-jupiter-5.17.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-core\6.2.8\spring-core-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-jcl\6.2.8\spring-jcl-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-test\6.2.8\spring-test-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\xmlunit\xmlunit-core\2.10.2\xmlunit-core-2.10.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-test\6.5.1\spring-security-test-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-core\6.5.1\spring-security-core-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-crypto\6.5.1\spring-security-crypto-6.5.1.jar;"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Europe/Berlin"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="22"/>
+    <property name="APPLICATION_NAME" value="camerannonces-backend"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="DE"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Eclipse Adoptium\jdk-22.0.2.9-hotspot\bin"/>
+    <property name="sun.java.command" value="C:\Users\Ngnimpea Durio\AppData\Local\Temp\surefire11727599264142811146\surefirebooter-20250803104427855_3.jar C:\Users\Ngnimpea Durio\AppData\Local\Temp\surefire11727599264142811146 2025-08-03T10-44-26_471-jvmRun1 surefire-20250803104427855_1tmp surefire_0-20250803104427855_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend\target\test-classes;C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend\target\classes;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.5.3\spring-boot-starter-data-jpa-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter\3.5.3\spring-boot-starter-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.5.3\spring-boot-starter-logging-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\ch\qos\logback\logback-classic\1.5.18\logback-classic-1.5.18.jar;C:\Users\Ngnimpea Durio\.m2\repository\ch\qos\logback\logback-core\1.5.18\logback-core-1.5.18.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\slf4j\jul-to-slf4j\2.0.17\jul-to-slf4j-2.0.17.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\yaml\snakeyaml\2.4\snakeyaml-2.4.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.5.3\spring-boot-starter-jdbc-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\zaxxer\HikariCP\6.3.0\HikariCP-6.3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-jdbc\6.2.8\spring-jdbc-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\orm\hibernate-core\6.6.18.Final\hibernate-core-6.6.18.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\common\hibernate-commons-annotations\7.0.3.Final\hibernate-commons-annotations-7.0.3.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\smallrye\jandex\3.2.0\jandex-3.2.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\bytebuddy\byte-buddy\1.17.6\byte-buddy-1.17.6.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\data\spring-data-jpa\3.5.1\spring-data-jpa-3.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\data\spring-data-commons\3.5.1\spring-data-commons-3.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-orm\6.2.8\spring-orm-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-context\6.2.8\spring-context-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-tx\6.2.8\spring-tx-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-beans\6.2.8\spring-beans-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\slf4j\slf4j-api\2.0.17\slf4j-api-2.0.17.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-aspects\6.2.8\spring-aspects-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\aspectj\aspectjweaver\1.9.24\aspectjweaver-1.9.24.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.5.3\spring-boot-starter-security-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-aop\6.2.8\spring-aop-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-config\6.5.1\spring-security-config-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-web\6.5.1\spring-security-web-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-expression\6.2.8\spring-expression-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.5.3\spring-boot-starter-validation-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.42\tomcat-embed-el-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.2.Final\hibernate-validator-8.0.2.Final.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.5.3\spring-boot-starter-web-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.5.3\spring-boot-starter-json-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.19.1\jackson-datatype-jdk8-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.19.1\jackson-datatype-jsr310-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.19.1\jackson-module-parameter-names-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.5.3\spring-boot-starter-tomcat-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.42\tomcat-embed-core-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.42\tomcat-embed-websocket-10.1.42.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-web\6.2.8\spring-web-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\micrometer\micrometer-observation\1.15.1\micrometer-observation-1.15.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\micrometer\micrometer-commons\1.15.1\micrometer-commons-1.15.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-webmvc\6.2.8\spring-webmvc-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.3\jjwt-api-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.3\jjwt-impl-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.3\jjwt-jackson-0.12.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.19.1\jackson-databind-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.19.1\jackson-annotations-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.19.1\jackson-core-2.19.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\postgresql\postgresql\42.7.7\postgresql-42.7.7.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\checkerframework\checker-qual\3.49.3\checker-qual-3.49.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-devtools\3.5.3\spring-boot-devtools-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot\3.5.3\spring-boot-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.5.3\spring-boot-autoconfigure-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.5.3\spring-boot-starter-test-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-test\3.5.3\spring-boot-test-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.5.3\spring-boot-test-autoconfigure-3.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\minidev\json-smart\2.5.2\json-smart-2.5.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\minidev\accessors-smart\2.5.2\accessors-smart-2.5.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\ow2\asm\asm\9.7.1\asm-9.7.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\assertj\assertj-core\3.27.3\assertj-core-3.27.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\awaitility\awaitility\4.2.2\awaitility-4.2.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\hamcrest\hamcrest\3.0\hamcrest-3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter\5.12.2\junit-jupiter-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.12.2\junit-jupiter-api-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\platform\junit-platform-commons\1.12.2\junit-platform-commons-1.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.12.2\junit-jupiter-params-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.12.2\junit-jupiter-engine-5.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\junit\platform\junit-platform-engine\1.12.2\junit-platform-engine-1.12.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\mockito\mockito-core\5.17.0\mockito-core-5.17.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.6\byte-buddy-agent-1.17.6.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\mockito\mockito-junit-jupiter\5.17.0\mockito-junit-jupiter-5.17.0.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\Ngnimpea Durio\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-core\6.2.8\spring-core-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-jcl\6.2.8\spring-jcl-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\spring-test\6.2.8\spring-test-6.2.8.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\xmlunit\xmlunit-core\2.10.2\xmlunit-core-2.10.2.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-test\6.5.1\spring-security-test-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-core\6.5.1\spring-security-core-6.5.1.jar;C:\Users\Ngnimpea Durio\.m2\repository\org\springframework\security\spring-security-crypto\6.5.1\spring-security-crypto-6.5.1.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Ngnimpea Durio"/>
+    <property name="user.language" value="de"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2024-07-16"/>
+    <property name="java.home" value="C:\Program Files\Eclipse Adoptium\jdk-22.0.2.9-hotspot"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="C:\Users\Ngnimpea Durio\AppData\Local\Temp\surefire11727599264142811146\surefirebooter-20250803104427855_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="22.0.2+9"/>
+    <property name="user.name" value="Ngnimpea Durio"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-22.0.2+9"/>
+    <property name="localRepository" value="C:\Users\Ngnimpea Durio\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\NGNIMP~1\AppData\Local\Temp\"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="22.0.2"/>
+    <property name="user.dir" value="C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="26728"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="windows-1252"/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Eclipse Adoptium\jdk-22.0.2.9-hotspot\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Eclipse Adoptium\jdk-22.0.2.9-hotspot\bin;C:\Program Files\Java\jdk-21\bin;C:\Program Files\AdoptOpenJDK\jdk-11.0.7.10-hotspot\bin;C:\Program Files (x86)\VMware\VMware Player\bin\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\PowerShell\7\;C:\WINDOWS\System32\OpenSSH\;C:\mingw64\bin;C:\Program Files\nodejs\;C:\Program Files\Git\cmd;C:\Users\Ngnimpea Durio\Downloads\apache-maven-3.9.11\bin;C:\Users\Ngnimpea Durio\AppData\Local\Microsoft\WindowsApps;C:\Users\Ngnimpea Durio\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Eclipse Adoptium\jdk-22.0.2.9-hotspot\bin;C:\Users\Ngnimpea Durio\Desktop\Web-Programmieren\fiferfox ordner;C:\Program Files\JetBrains\IntelliJ IDEA 2023.2.3\bin;;C:\Users\Ngnimpea Durio\AppData\Roaming\npm;C:\Users\Ngnimpea Durio\Downloads\apache-maven-3.9.11\bin;;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="22.0.2+9"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="66.0"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[camerannonces-backend] "/>
+  </properties>
+  <testcase name="testDatabaseConnection" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.625">
+    <system-out><![CDATA[10:44:29.183 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.camerannonces.CamerannoncesBackendApplicationTests]: CamerannoncesBackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:44:29.357 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.camerannonces.CamerannoncesBackendApplication for test class com.camerannonces.CamerannoncesBackendApplicationTests
+10:44:29.689 [main] INFO org.springframework.boot.devtools.restart.RestartApplicationListener -- Restart disabled due to context in which it is running
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.3)
+
+2025-08-03T10:44:30.268+02:00  INFO 26728 --- [camerannonces-backend] [           main] c.c.CamerannoncesBackendApplicationTests : Starting CamerannoncesBackendApplicationTests using Java 22.0.2 with PID 26728 (started by Ngnimpea Durio in C:\Users\Ngnimpea Durio\Desktop\Mon Project\Cameranonces-project\backend\camerannonces-backend)
+2025-08-03T10:44:30.270+02:00  INFO 26728 --- [camerannonces-backend] [           main] c.c.CamerannoncesBackendApplicationTests : The following 1 profile is active: "test"
+2025-08-03T10:44:31.587+02:00  INFO 26728 --- [camerannonces-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-08-03T10:44:31.698+02:00  INFO 26728 --- [camerannonces-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 91 ms. Found 8 JPA repository interfaces.
+2025-08-03T10:44:33.059+02:00  INFO 26728 --- [camerannonces-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-08-03T10:44:33.231+02:00  INFO 26728 --- [camerannonces-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.18.Final
+2025-08-03T10:44:33.307+02:00  INFO 26728 --- [camerannonces-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-08-03T10:44:33.918+02:00  INFO 26728 --- [camerannonces-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-08-03T10:44:33.969+02:00  INFO 26728 --- [camerannonces-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-08-03T10:44:34.315+02:00  INFO 26728 --- [camerannonces-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@ca2cd5e
+2025-08-03T10:44:34.317+02:00  INFO 26728 --- [camerannonces-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-08-03T10:44:34.404+02:00  WARN 26728 --- [camerannonces-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-03T10:44:34.449+02:00  INFO 26728 --- [camerannonces-backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 15.13
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-08-03T10:44:36.128+02:00  INFO 26728 --- [camerannonces-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-08-03T10:44:36.704+02:00  INFO 26728 --- [camerannonces-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-08-03T10:44:37.132+02:00  INFO 26728 --- [camerannonces-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-08-03T10:44:40.583+02:00  WARN 26728 --- [camerannonces-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-08-03T10:44:41.041+02:00  WARN 26728 --- [camerannonces-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 70e62426-512f-454b-a862-3a12cc440c52
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-08-03T10:44:41.054+02:00  INFO 26728 --- [camerannonces-backend] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-08-03T10:44:41.810+02:00  INFO 26728 --- [camerannonces-backend] [           main] c.c.CamerannoncesBackendApplicationTests : Started CamerannoncesBackendApplicationTests in 12.145 seconds (process running for 13.786)
+Hibernate: 
+    select
+        count(*) 
+    from
+        users u1_0
+Hibernate: 
+    select
+        count(*) 
+    from
+        categories c1_0
+Hibernate: 
+    select
+        count(*) 
+    from
+        cities c1_0
+Hibernate: 
+    select
+        count(*) 
+    from
+        listings l1_0
+📊 STATISTIQUES BASE DE DONNÉES:
+👥 Utilisateurs: 3
+📂 Catégories: 12
+🏙️ Villes: 25
+📝 Annonces: 15
+✅ Connexion base de données réussie !
+]]></system-out>
+    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\Ngnimpea Durio\.m2\repository\net\bytebuddy\byte-buddy-agent\1.17.6\byte-buddy-agent-1.17.6.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+  <testcase name="testCityRepository" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.223">
+    <system-out><![CDATA[Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.is_active 
+    order by
+        c1_0.nom
+🏙️ VILLES PAR RÉGION:
+Hibernate: 
+    select
+        distinct c1_0.region 
+    from
+        cities c1_0 
+    order by
+        c1_0.region
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Adamaoua: 2 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Centre: 3 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Est: 2 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Extrême-Nord: 2 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Littoral: 3 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Nord: 2 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Nord-Ouest: 3 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Ouest: 3 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Sud: 2 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.region=? 
+        and c1_0.is_active
+  📍 Sud-Ouest: 3 villes
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.region 
+    from
+        cities c1_0 
+    where
+        c1_0.nom=?
+✅ Repository City fonctionne !
+]]></system-out>
+  </testcase>
+  <testcase name="testListingRepository" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.065">
+    <system-out><![CDATA[Hibernate: 
+    select
+        count(l1_0.id) 
+    from
+        listings l1_0 
+    where
+        l1_0.statut=?
+📝 ANNONCES ACTIVES: 15
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0 
+    where
+        l1_0.statut=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(l1_0.id) 
+    from
+        listings l1_0 
+    where
+        l1_0.statut=?
+📄 Première page: 5 annonces
+  📱 iPhone 13 Pro Max 256GB - 450000 FCFA - Douala
+  📱 Samsung Galaxy A54 Neuf - 195000 FCFA - Yaoundé
+  📱 Toyota Corolla 2018 - 8500000 FCFA - Douala
+  📱 Moto Yamaha 125cc - 750000 FCFA - Bafoussam
+  📱 Appartement 3 chambres Bastos - 180000 FCFA - Yaoundé
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0 
+    left join
+        categories c1_0 
+            on c1_0.id=l1_0.category_id 
+    where
+        c1_0.id=? 
+        and l1_0.statut=? 
+    fetch
+        first ? rows only
+📱 Annonces téléphones: 2
+✅ Repository Listing fonctionne !
+]]></system-out>
+  </testcase>
+  <testcase name="testSearchFunctionality" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.05">
+    <system-out><![CDATA[Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0 
+    where
+        l1_0.statut=? 
+        and (
+            lower(l1_0.titre) like lower(('%'||?||'%')) escape '' 
+            or lower(l1_0.description) like lower(('%'||?||'%')) escape ''
+        ) 
+    fetch
+        first ? rows only
+🔍 RECHERCHE 'iPhone': 1 résultats
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0 
+    where
+        l1_0.ville=? 
+        and l1_0.statut=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(l1_0.id) 
+    from
+        listings l1_0 
+    where
+        l1_0.ville=? 
+        and l1_0.statut=?
+🏙️ ANNONCES DOUALA: 8 résultats
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0 
+    where
+        (
+            ? is null 
+            or l1_0.category_id=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.ville=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.quartier=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.prix>=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.prix<=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.etat_produit=?
+        ) 
+        and (
+            ? is null 
+            or l1_0.prix_negociable=?
+        ) 
+        and l1_0.statut=? 
+    fetch
+        first ? rows only
+🔍 RECHERCHE AVANCÉE: 1 résultats
+✅ Fonctionnalités de recherche opérationnelles !
+]]></system-out>
+  </testcase>
+  <testcase name="testStatistics" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.033">
+    <system-out><![CDATA[📊 STATISTIQUES DÉTAILLÉES:
+Hibernate: 
+    select
+        c1_0.nom,
+        count(l1_0.id) 
+    from
+        listings l1_0 
+    join
+        categories c1_0 
+            on c1_0.id=l1_0.category_id 
+    where
+        l1_0.statut=? 
+    group by
+        c1_0.id
+📂 Par catégorie:
+  Téléphones & Accessoires: 2 annonces
+  Véhicules: 2 annonces
+  Immobilier: 2 annonces
+  Mode & Beauté: 2 annonces
+  Emplois & Services: 1 annonces
+  Électronique: 2 annonces
+  Mariage & Événements: 1 annonces
+  Agriculture & Élevage: 1 annonces
+  Éducation: 1 annonces
+  Alimentation: 1 annonces
+Hibernate: 
+    select
+        l1_0.ville,
+        count(l1_0.id) 
+    from
+        listings l1_0 
+    where
+        l1_0.statut=? 
+    group by
+        l1_0.ville 
+    order by
+        count(l1_0.id) desc
+🏙️ Par ville (top 5):
+  Douala: 8 annonces
+  Yaoundé: 5 annonces
+  Bafoussam: 2 annonces
+Hibernate: 
+    select
+        u1_0.plan_actuel,
+        count(u1_0.id) 
+    from
+        users u1_0 
+    group by
+        u1_0.plan_actuel
+👥 Par plan:
+  PRO: 1 utilisateurs
+  GRATUIT: 1 utilisateurs
+  BASIC: 1 utilisateurs
+✅ Statistiques générées avec succès !
+]]></system-out>
+  </testcase>
+  <testcase name="testCategoryRepository" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.023">
+    <system-out><![CDATA[Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.description,
+        c1_0.emoji,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.nom_anglais,
+        c1_0.ordre_affichage 
+    from
+        categories c1_0 
+    where
+        c1_0.is_active 
+    order by
+        c1_0.ordre_affichage
+📂 CATÉGORIES TROUVÉES:
+  📱 Téléphones & Accessoires (Phones & Accessories)
+  🚗 Véhicules (Vehicles)
+  🏠 Immobilier (Real Estate)
+  👕 Mode & Beauté (Fashion & Beauty)
+  💼 Emplois & Services (Jobs & Services)
+  🖥️ Électronique (Electronics)
+  🎉 Mariage & Événements (Wedding & Events)
+  🛠️ Services Domestiques (Home Services)
+  🐔 Agriculture & Élevage (Agriculture & Livestock)
+  📚 Éducation (Education)
+  🍖 Alimentation (Food)
+  🧩 Autres (Others)
+Hibernate: 
+    select
+        c1_0.id,
+        c1_0.date_creation,
+        c1_0.description,
+        c1_0.emoji,
+        c1_0.is_active,
+        c1_0.nom,
+        c1_0.nom_anglais,
+        c1_0.ordre_affichage 
+    from
+        categories c1_0 
+    where
+        c1_0.nom=?
+✅ Repository Category fonctionne !
+]]></system-out>
+  </testcase>
+  <testcase name="testDataIntegrity" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.044">
+    <system-out><![CDATA[🔍 VÉRIFICATION INTÉGRITÉ DES DONNÉES:
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0
+Hibernate: 
+    select
+        l1_0.id,
+        l1_0.adresse_complete,
+        l1_0.category_id,
+        l1_0.contacts_whatsapp,
+        l1_0.date_creation,
+        l1_0.date_derniere_remontee,
+        l1_0.date_expiration,
+        l1_0.date_verification,
+        l1_0.description,
+        l1_0.email_contact,
+        l1_0.etat_produit,
+        l1_0.is_premium,
+        l1_0.is_urgent,
+        l1_0.is_verified,
+        l1_0.livraison_domicile,
+        l1_0.livraison_gare,
+        l1_0.livraison_sur_place,
+        l1_0.paiement_cash,
+        l1_0.paiement_mobile_money,
+        l1_0.paiement_virement,
+        l1_0.prix,
+        l1_0.prix_negociable,
+        l1_0.quartier,
+        l1_0.statut,
+        l1_0.telephone_contact,
+        l1_0.titre,
+        l1_0.user_id,
+        l1_0.ville,
+        l1_0.vues 
+    from
+        listings l1_0
+Hibernate: 
+    select
+        u1_0.id,
+        u1_0.annonces_publiees_ce_mois,
+        u1_0.date_creation,
+        u1_0.date_expiration_plan,
+        u1_0.derniere_connexion,
+        u1_0.derniere_reinitialisation_compteur,
+        u1_0.description_boutique,
+        u1_0.email,
+        u1_0.is_active,
+        u1_0.is_boutique,
+        u1_0.mot_de_passe,
+        u1_0.nom,
+        u1_0.nom_boutique,
+        u1_0.plan_actuel,
+        u1_0.quartier,
+        u1_0.telephone,
+        u1_0.ville 
+    from
+        users u1_0
+✅ Intégrité des données vérifiée !
+]]></system-out>
+  </testcase>
+  <testcase name="contextLoads" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.009">
+    <system-out><![CDATA[✅ Tous les repositories sont chargés correctement !
+]]></system-out>
+  </testcase>
+  <testcase name="testFinalSummary" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.059">
+    <system-out><![CDATA[
+==================================================
+🎉 RÉSUMÉ FINAL DES TESTS
+==================================================
+📊 BASE DE DONNÉES:
+Hibernate: 
+    select
+        count(*) 
+    from
+        users u1_0
+  👥 Utilisateurs: 3
+Hibernate: 
+    select
+        count(*) 
+    from
+        categories c1_0
+  📂 Catégories: 12
+Hibernate: 
+    select
+        count(*) 
+    from
+        cities c1_0
+  🏙️ Villes: 25
+Hibernate: 
+    select
+        count(*) 
+    from
+        quartiers q1_0
+  🏘️ Quartiers: 24
+Hibernate: 
+    select
+        count(*) 
+    from
+        listings l1_0
+  📝 Annonces: 15
+Hibernate: 
+    select
+        count(*) 
+    from
+        listing_images li1_0
+  🖼️ Images: 8
+Hibernate: 
+    select
+        count(*) 
+    from
+        user_favorites uf1_0
+  ❤️ Favoris: 6
+Hibernate: 
+    select
+        count(*) 
+    from
+        signals s1_0
+  🚨 Signalements: 2
+
+✅ TOUS LES TESTS RÉUSSIS !
+🚀 Votre backend est prêt pour la Phase G !
+==================================================
+]]></system-out>
+  </testcase>
+  <testcase name="testUserRepository" classname="com.camerannonces.CamerannoncesBackendApplicationTests" time="0.023">
+    <system-out><![CDATA[Hibernate: 
+    select
+        count(*) 
+    from
+        users u1_0
+Hibernate: 
+    select
+        count(u1_0.id) 
+    from
+        users u1_0 
+    where
+        u1_0.is_boutique=true
+👥 UTILISATEURS:
+  Total: 3
+  Boutiques: 1
+Hibernate: 
+    select
+        u1_0.id,
+        u1_0.annonces_publiees_ce_mois,
+        u1_0.date_creation,
+        u1_0.date_expiration_plan,
+        u1_0.derniere_connexion,
+        u1_0.derniere_reinitialisation_compteur,
+        u1_0.description_boutique,
+        u1_0.email,
+        u1_0.is_active,
+        u1_0.is_boutique,
+        u1_0.mot_de_passe,
+        u1_0.nom,
+        u1_0.nom_boutique,
+        u1_0.plan_actuel,
+        u1_0.quartier,
+        u1_0.telephone,
+        u1_0.ville 
+    from
+        users u1_0 
+    where
+        u1_0.plan_actuel=?
+  Plan gratuit: 1
+Hibernate: 
+    select
+        u1_0.id,
+        u1_0.annonces_publiees_ce_mois,
+        u1_0.date_creation,
+        u1_0.date_expiration_plan,
+        u1_0.derniere_connexion,
+        u1_0.derniere_reinitialisation_compteur,
+        u1_0.description_boutique,
+        u1_0.email,
+        u1_0.is_active,
+        u1_0.is_boutique,
+        u1_0.mot_de_passe,
+        u1_0.nom,
+        u1_0.nom_boutique,
+        u1_0.plan_actuel,
+        u1_0.quartier,
+        u1_0.telephone,
+        u1_0.ville 
+    from
+        users u1_0 
+    where
+        u1_0.is_active
+  Actifs: 3
+✅ Repository User fonctionne !
+]]></system-out>
+  </testcase>
+</testsuite>

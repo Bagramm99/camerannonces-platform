@@ -1,8 +1,9 @@
 package com.camerannonces.service;
 
-import com.camerannonces.dto.JwtResponse;
 import com.camerannonces.entity.User;
 import com.camerannonces.enums.PlanType;
+import com.camerannonces.jwt.JwtResponse;
+import com.camerannonces.jwt.JwtTokenProvider;
 import com.camerannonces.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * Service d'authentification avec intégration JWT
+ * Localisation: src/main/java/com/camerannonces/service/AuthService.java
+ */
 @Service
 @Transactional
 public class AuthService {
@@ -22,10 +27,13 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     /**
-     * Inscription d'un nouvel utilisateur
+     * Inscription d'un nouvel utilisateur avec JWT
      */
-    public User register(String nom, String telephone, String motDePasse, String ville, String quartier) {
+    public JwtResponse register(String nom, String telephone, String motDePasse, String ville, String quartier) {
         // Vérifier si le téléphone existe déjà
         if (userRepository.existsByTelephone(telephone)) {
             throw new RuntimeException("Ce numéro de téléphone est déjà utilisé");
@@ -34,6 +42,11 @@ public class AuthService {
         // Valider le format du téléphone camerounais
         if (!telephone.matches("^237[0-9]{9}$")) {
             throw new RuntimeException("Format de téléphone invalide. Utilisez le format : 237XXXXXXXXX");
+        }
+
+        // Valider le mot de passe
+        if (motDePasse == null || motDePasse.length() < 6) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins 6 caractères");
         }
 
         // Créer le nouvel utilisateur
@@ -48,13 +61,16 @@ public class AuthService {
         user.setIsBoutique(false);
         user.setAnnoncesPublieesCeMois(0);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Générer les tokens JWT
+        return jwtTokenProvider.createJwtResponse(telephone, savedUser.getId());
     }
 
     /**
-     * Connexion d'un utilisateur
+     * Connexion d'un utilisateur avec JWT
      */
-    public User login(String telephone, String motDePasse) {
+    public JwtResponse login(String telephone, String motDePasse) {
         // Chercher l'utilisateur par téléphone
         Optional<User> userOpt = userRepository.findByTelephone(telephone);
 
@@ -78,7 +94,79 @@ public class AuthService {
         user.setDerniereConnexion(LocalDateTime.now());
         userRepository.save(user);
 
-        return user;
+        // Générer les tokens JWT
+        return jwtTokenProvider.createJwtResponse(telephone, user.getId());
+    }
+
+    /**
+     * Rafraîchir le token d'accès
+     */
+    public JwtResponse refreshToken(String refreshToken) {
+        try {
+            String telephone = jwtTokenProvider.extractUsername(refreshToken);
+            Long userId = jwtTokenProvider.extractUserId(refreshToken);
+
+            // Vérifier que c'est bien un refresh token valide
+            if (!jwtTokenProvider.validateRefreshToken(refreshToken, telephone)) {
+                throw new RuntimeException("Refresh token invalide ou expiré");
+            }
+
+            // Vérifier que l'utilisateur existe toujours et est actif
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+            if (!user.getIsActive()) {
+                throw new RuntimeException("Compte suspendu");
+            }
+
+            // Générer nouveaux tokens
+            return jwtTokenProvider.createJwtResponse(telephone, userId);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Impossible de rafraîchir le token : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Valider un token et retourner l'utilisateur
+     */
+    public User validateTokenAndGetUser(String token) {
+        try {
+            String telephone = jwtTokenProvider.extractUsername(token);
+            Long userId = jwtTokenProvider.extractUserId(token);
+
+            if (jwtTokenProvider.validateToken(token, telephone)) {
+                User user = getUserById(userId);
+
+                // Vérifier que l'utilisateur est toujours actif
+                if (!user.getIsActive()) {
+                    throw new RuntimeException("Compte suspendu");
+                }
+
+                return user;
+            } else {
+                throw new RuntimeException("Token invalide");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Token invalide : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtenir un utilisateur par son ID
+     */
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    }
+
+    /**
+     * Mettre à jour la dernière connexion
+     */
+    public void updateLastLogin(Long userId) {
+        User user = getUserById(userId);
+        user.setDerniereConnexion(LocalDateTime.now());
+        userRepository.save(user);
     }
 
     /**
@@ -110,21 +198,36 @@ public class AuthService {
             throw new RuntimeException("Ancien mot de passe incorrect");
         }
 
+        // Valider le nouveau mot de passe
+        if (nouveauMotDePasse == null || nouveauMotDePasse.length() < 6) {
+            throw new RuntimeException("Le nouveau mot de passe doit contenir au moins 6 caractères");
+        }
+
         // Mettre à jour le mot de passe
         user.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
         userRepository.save(user);
     }
 
     /**
-     * Réinitialiser le mot de passe (simple version)
+     * Réinitialiser le mot de passe (version simple)
      */
     public void resetPassword(String telephone, String nouveauMotDePasse) {
         User user = userRepository.findByTelephone(telephone)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
+        // Valider le nouveau mot de passe
+        if (nouveauMotDePasse == null || nouveauMotDePasse.length() < 6) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins 6 caractères");
+        }
+
         user.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
         userRepository.save(user);
     }
 
-
+    /**
+     * Obtenir les informations d'expiration d'un token
+     */
+    public long getTokenRemainingTime(String token) {
+        return jwtTokenProvider.getRemainingExpiration(token);
+    }
 }
