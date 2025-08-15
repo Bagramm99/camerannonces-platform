@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { testApi, categoryApi, cityApi } from './services/api'
 import { useAuth } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import LoginModal from './components/LoginModal'
+import RegisterModal from './components/RegisterModal'
 import './App.css'
 
 function App() {
@@ -9,6 +11,10 @@ function App() {
     const [searchQuery, setSearchQuery] = useState('')
     const [apiTest, setApiTest] = useState<any>(null)
     const [loading, setLoading] = useState(false)
+
+    // 🆕 États pour les modals
+    const [showLoginModal, setShowLoginModal] = useState(false)
+    const [showRegisterModal, setShowRegisterModal] = useState(false)
 
     // 🆕 États pour les données dynamiques
     const [categories, setCategories] = useState<any[]>([])
@@ -128,12 +134,28 @@ function App() {
         }
     }
 
-    // 🆕 Nouvelles fonctions utilisant le Context
+    // 🆕 Fonctions de gestion des modals
+    const openLoginModal = () => {
+        setShowLoginModal(true)
+        setShowRegisterModal(false)
+    }
+
+    const openRegisterModal = () => {
+        setShowRegisterModal(true)
+        setShowLoginModal(false)
+    }
+
+    const closeModals = () => {
+        setShowLoginModal(false)
+        setShowRegisterModal(false)
+    }
+
+    // 🆕 Nouvelles fonctions utilisant le Context (pour les tests)
     const testContextLogin = async () => {
         setLoading(true)
         try {
             await login({
-                telephone: '237655444333',
+                telephone: '237655444333',  // ✅ Corrigé
                 motDePasse: 'password123'
             })
 
@@ -160,8 +182,8 @@ function App() {
         setLoading(true)
         try {
             await register({
-                nom: 'Test Context User',
-                telephone: '237666555444',
+                nom: 'Test Context User 3',      // Nom différent
+                telephone: '237777888999',       // ✅ Nouveau numéro
                 motDePasse: 'password123',
                 ville: 'Yaoundé',
                 quartier: 'Bastos'
@@ -221,12 +243,24 @@ function App() {
 
     return (
         <div className="bg-gradient">
+            {/* 🆕 Modals */}
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={closeModals}
+                onSwitchToRegister={openRegisterModal}
+            />
+            <RegisterModal
+                isOpen={showRegisterModal}
+                onClose={closeModals}
+                onSwitchToLogin={openLoginModal}
+            />
+
             {/* Panel de test avec nouveaux boutons Context */}
             <div style={{
                 position: 'fixed',
                 top: '10px',
                 right: '10px',
-                zIndex: 1000,
+                zIndex: 999,  // ✅ Réduit pour être sous les modals
                 background: 'white',
                 padding: '15px',
                 borderRadius: '12px',
@@ -399,7 +433,7 @@ function App() {
                 )}
             </div>
 
-            {/* Header modifié avec état auth */}
+            {/* Header avec modals au lieu des boutons de test */}
             <header style={{
                 background: 'white',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -421,7 +455,7 @@ function App() {
                             🇨🇲 CamerAnnonces
                         </h1>
 
-                        {/* 🆕 Boutons d'auth dynamiques */}
+                        {/* 🆕 Boutons d'auth avec modals */}
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                             {isAuthenticated ? (
                                 <>
@@ -456,9 +490,7 @@ function App() {
                                     <button
                                         className="btn-primary"
                                         style={{ width: 'auto', padding: '8px 16px' }}
-                                        onClick={() => {
-                                            console.log('🔄 Ouverture modal connexion...')
-                                        }}
+                                        onClick={openLoginModal}  // ✅ Ouvre le modal
                                     >
                                         🔑 Connexion
                                     </button>
@@ -471,9 +503,8 @@ function App() {
                                         fontWeight: '600',
                                         cursor: 'pointer'
                                     }}
-                                            onClick={() => {
-                                                console.log('🔄 Ouverture modal inscription...')
-                                            }}>
+                                            onClick={openRegisterModal}  // ✅ Ouvre le modal
+                                    >
                                         📝 S'inscrire
                                     </button>
                                 </>
@@ -534,7 +565,7 @@ function App() {
                 </div>
             </header>
 
-            {/* Contenu principal */}
+            {/* Contenu principal (inchangé) */}
             <main className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
                 {/* Statistiques dynamiques */}
                 <div style={{
@@ -553,11 +584,6 @@ function App() {
                         Trouvez tout ce dont vous avez besoin
                     </h2>
                     <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '1rem' }}>
-                        {isDataLoaded ? (
-                            <>Plus de <strong>{categories.reduce((total, cat) => total + cat.count, 0).toLocaleString()}</strong> annonces dans <strong>{regions.length}</strong> régions du Cameroun</>
-                        ) : (
-                            <>Plus de <strong>10,000 annonces</strong> dans tout le Cameroun</>
-                        )}
                     </p>
 
                     {/* 🆕 Indicateur de statut d'authentification */}
@@ -724,18 +750,39 @@ function App() {
                             </button>
                         </div>
                     ) : (
-                        <button style={{
-                            background: 'white',
-                            color: '#0369a1',
-                            border: 'none',
-                            padding: '16px 32px',
-                            borderRadius: '8px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                        }}>
-                            Commencer maintenant
-                        </button>
+                        <div>
+                            <button
+                                onClick={openRegisterModal}  // ✅ Ouvre le modal d'inscription
+                                style={{
+                                    background: 'white',
+                                    color: '#0369a1',
+                                    border: 'none',
+                                    padding: '16px 32px',
+                                    borderRadius: '8px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    marginRight: '1rem'
+                                }}
+                            >
+                                📝 Commencer maintenant
+                            </button>
+                            <button
+                                onClick={openLoginModal}  // ✅ Ouvre le modal de connexion
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    color: 'white',
+                                    border: '2px solid white',
+                                    padding: '14px 30px',
+                                    borderRadius: '8px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                🔑 Se connecter
+                            </button>
+                        </div>
                     )}
                 </div>
 
