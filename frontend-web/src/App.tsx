@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { testApi, categoryApi, cityApi } from './services/api'
+import { useAuth } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
 function App() {
@@ -13,6 +15,18 @@ function App() {
     const [cities, setCities] = useState<string[]>(['Toutes les villes'])
     const [regions, setRegions] = useState<string[]>([])
     const [isDataLoaded, setIsDataLoaded] = useState(false)
+
+    // 🆕 Utiliser le context d'authentification
+    const {
+        user,
+        isAuthenticated,
+        isLoading: authLoading,
+        error: authError,
+        login,
+        register,
+        logout,
+        clearError
+    } = useAuth()
 
     // 🆕 Charger les données au démarrage
     useEffect(() => {
@@ -114,77 +128,82 @@ function App() {
         }
     }
 
-    // Test des vraies catégories
-    const testRealCategories = async () => {
+    // 🆕 Nouvelles fonctions utilisant le Context
+    const testContextLogin = async () => {
         setLoading(true)
         try {
-            console.log('=== TEST CATÉGORIES RÉELLES ===')
-
-            const categoriesWithCount = await categoryApi.getAllWithCount()
-            console.log('📊 Catégories avec compteurs:', categoriesWithCount)
-
-            setApiTest({
-                success: true,
-                message: `✅ ${categoriesWithCount.categoriesWithCount?.length || 0} catégories chargées depuis PostgreSQL`,
-                data: categoriesWithCount
+            await login({
+                telephone: '237655444333',
+                motDePasse: 'password123'
             })
-        } catch (error) {
-            console.error('❌ Erreur catégories:', error)
-            setApiTest({ error: 'Erreur lors du chargement des catégories' })
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Test des vraies villes
-    const testRealCities = async () => {
-        setLoading(true)
-        try {
-            console.log('=== TEST VILLES RÉELLES ===')
-
-            const cities = await cityApi.getAll()
-            console.log('🏙️ Toutes les villes:', cities)
-
-            const regions = await cityApi.getRegions()
-            console.log('🗺️ Régions du Cameroun:', regions)
 
             setApiTest({
                 success: true,
-                message: `✅ ${cities.cities?.length || 0} villes et ${regions.regions?.length || 0} régions chargées`,
-                data: { cities: cities.cities?.length, regions: regions.regions?.length }
-            })
-        } catch (error) {
-            console.error('❌ Erreur villes:', error)
-            setApiTest({ error: 'Erreur lors du chargement des villes' })
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Test complet de tous les APIs
-    const testAllRealApis = async () => {
-        setLoading(true)
-        try {
-            console.log('=== TEST COMPLET DE TOUS LES APIs ===')
-
-            const backendTest = await testApi.hello()
-            const categoriesData = await categoryApi.getAllWithCount()
-            const citiesData = await cityApi.getAll()
-            const regionsData = await cityApi.getRegions()
-
-            setApiTest({
-                success: true,
-                message: '🎉 TOUS LES APIs FONCTIONNENT PARFAITEMENT !',
+                message: `✅ Connexion Context réussie pour ${user?.nom}`,
                 data: {
-                    backend: '✅ Connecté',
-                    categories: `✅ ${categoriesData.categoriesWithCount?.length || 0} catégories`,
-                    cities: `✅ ${citiesData.cities?.length || 0} villes`,
-                    regions: `✅ ${regionsData.regions?.length || 0} régions`
+                    user: user?.nom,
+                    authenticated: isAuthenticated,
+                    fromContext: true
                 }
             })
-        } catch (error) {
-            console.error('❌ Erreur test complet:', error)
-            setApiTest({ error: 'Erreur lors du test complet' })
+        } catch (error: any) {
+            setApiTest({
+                error: `Context Login: ${error.message}`,
+                data: { fromContext: true }
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const testContextRegister = async () => {
+        setLoading(true)
+        try {
+            await register({
+                nom: 'Test Context User',
+                telephone: '237666555444',
+                motDePasse: 'password123',
+                ville: 'Yaoundé',
+                quartier: 'Bastos'
+            })
+
+            setApiTest({
+                success: true,
+                message: `✅ Inscription Context réussie pour ${user?.nom}`,
+                data: {
+                    user: user?.nom,
+                    authenticated: isAuthenticated,
+                    fromContext: true
+                }
+            })
+        } catch (error: any) {
+            setApiTest({
+                error: `Context Register: ${error.message}`,
+                data: { fromContext: true }
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const testContextLogout = async () => {
+        setLoading(true)
+        try {
+            await logout()
+
+            setApiTest({
+                success: true,
+                message: '✅ Déconnexion Context réussie',
+                data: {
+                    authenticated: isAuthenticated,
+                    fromContext: true
+                }
+            })
+        } catch (error: any) {
+            setApiTest({
+                error: `Context Logout: ${error.message}`,
+                data: { fromContext: true }
+            })
         } finally {
             setLoading(false)
         }
@@ -200,17 +219,9 @@ function App() {
         // Ici on fera l'appel API de recherche vers le backend
     }
 
-    // 🆕 Fonction pour recharger les données
-    const refreshData = async () => {
-        setLoading(true)
-        await loadInitialData()
-        setLoading(false)
-        setApiTest({ success: true, message: '🔄 Données rechargées avec succès !' })
-    }
-
     return (
         <div className="bg-gradient">
-            {/* Panel de test des APIs */}
+            {/* Panel de test avec nouveaux boutons Context */}
             <div style={{
                 position: 'fixed',
                 top: '10px',
@@ -220,11 +231,70 @@ function App() {
                 padding: '15px',
                 borderRadius: '12px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                minWidth: '300px'
+                minWidth: '320px'
             }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '600' }}>
-                    🧪 Tests APIs CamerAnnonces
+                    🧪 Tests APIs + Context Auth
                 </h4>
+
+                {/* 🆕 Affichage état utilisateur */}
+                {authLoading ? (
+                    <div style={{
+                        padding: '8px',
+                        background: '#f3f4f6',
+                        borderRadius: '4px',
+                        marginBottom: '10px',
+                        fontSize: '12px'
+                    }}>
+                        ⏳ Chargement authentification...
+                    </div>
+                ) : isAuthenticated ? (
+                    <div style={{
+                        padding: '8px',
+                        background: '#dcfce7',
+                        borderRadius: '4px',
+                        marginBottom: '10px',
+                        fontSize: '12px'
+                    }}>
+                        ✅ Connecté: <strong>{user?.nom}</strong><br/>
+                        📱 {user?.telephone}
+                    </div>
+                ) : (
+                    <div style={{
+                        padding: '8px',
+                        background: '#fef3c7',
+                        borderRadius: '4px',
+                        marginBottom: '10px',
+                        fontSize: '12px'
+                    }}>
+                        🔐 Non connecté
+                    </div>
+                )}
+
+                {/* 🆕 Erreur auth */}
+                {authError && (
+                    <div style={{
+                        padding: '8px',
+                        background: '#fef2f2',
+                        borderRadius: '4px',
+                        marginBottom: '10px',
+                        fontSize: '11px',
+                        color: '#dc2626'
+                    }}>
+                        ❌ {authError}
+                        <button
+                            onClick={clearError}
+                            style={{
+                                marginLeft: '8px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <button
@@ -243,72 +313,72 @@ function App() {
                         {loading ? '⏳' : '🔗'} Test Backend
                     </button>
 
-                    <button
-                        onClick={testRealCategories}
-                        disabled={loading}
-                        style={{
-                            background: loading ? '#ccc' : '#3B82F6',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '12px'
-                        }}
-                    >
-                        {loading ? '⏳' : '📱'} Test Catégories DB
-                    </button>
+                    {/* 🆕 Boutons Context Auth */}
+                    <div style={{
+                        borderTop: '1px solid #e5e7eb',
+                        paddingTop: '8px',
+                        marginTop: '8px'
+                    }}>
+                        <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '6px' }}>
+                            🔐 Tests Context Auth
+                        </div>
 
-                    <button
-                        onClick={testRealCities}
-                        disabled={loading}
-                        style={{
-                            background: loading ? '#ccc' : '#F59E0B',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '12px'
-                        }}
-                    >
-                        {loading ? '⏳' : '🏙️'} Test Villes DB
-                    </button>
+                        <button
+                            onClick={testContextRegister}
+                            disabled={loading || authLoading}
+                            style={{
+                                background: loading ? '#ccc' : '#10B981',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '11px',
+                                width: '100%',
+                                marginBottom: '4px'
+                            }}
+                        >
+                            {loading ? '⏳' : '📝'} Context Register
+                        </button>
 
-                    <button
-                        onClick={testAllRealApis}
-                        disabled={loading}
-                        style={{
-                            background: loading ? '#ccc' : '#8B5CF6',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '12px',
-                            fontWeight: '600'
-                        }}
-                    >
-                        {loading ? '⏳' : '🚀'} Test TOUT
-                    </button>
+                        <button
+                            onClick={testContextLogin}
+                            disabled={loading || authLoading}
+                            style={{
+                                background: loading ? '#ccc' : '#3B82F6',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '11px',
+                                width: '100%',
+                                marginBottom: '4px'
+                            }}
+                        >
+                            {loading ? '⏳' : '🔑'} Context Login
+                        </button>
 
-                    <button
-                        onClick={refreshData}
-                        disabled={loading}
-                        style={{
-                            background: loading ? '#ccc' : '#059669',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '12px'
-                        }}
-                    >
-                        {loading ? '⏳' : '🔄'} Recharger Data
-                    </button>
+                        <button
+                            onClick={testContextLogout}
+                            disabled={loading || authLoading || !isAuthenticated}
+                            style={{
+                                background: loading || !isAuthenticated ? '#ccc' : '#EF4444',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '4px',
+                                cursor: loading || !isAuthenticated ? 'not-allowed' : 'pointer',
+                                fontSize: '11px',
+                                width: '100%'
+                            }}
+                        >
+                            {loading ? '⏳' : '🚪'} Context Logout
+                        </button>
+                    </div>
                 </div>
 
+                {/* Résultats des tests */}
                 {apiTest && (
                     <div style={{ marginTop: '12px', fontSize: '11px' }}>
                         {apiTest.error ? (
@@ -317,7 +387,7 @@ function App() {
                             </div>
                         ) : (
                             <div style={{ color: 'green', padding: '8px', background: '#f0fdf4', borderRadius: '4px' }}>
-                                ✅ {apiTest.message || 'Backend OK'}
+                                ✅ {apiTest.message || 'Test OK'}
                                 {apiTest.data && (
                                     <div style={{ marginTop: '4px', fontSize: '10px' }}>
                                         {typeof apiTest.data === 'object' ? JSON.stringify(apiTest.data, null, 2) : apiTest.data}
@@ -329,7 +399,7 @@ function App() {
                 )}
             </div>
 
-            {/* Header */}
+            {/* Header modifié avec état auth */}
             <header style={{
                 background: 'white',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -350,24 +420,68 @@ function App() {
                         }}>
                             🇨🇲 CamerAnnonces
                         </h1>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button className="btn-primary" style={{ width: 'auto', padding: '8px 16px' }}>
-                                Connexion
-                            </button>
-                            <button style={{
-                                background: '#10B981',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '6px',
-                                fontWeight: '600'
-                            }}>
-                                Poster une annonce
-                            </button>
+
+                        {/* 🆕 Boutons d'auth dynamiques */}
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            {isAuthenticated ? (
+                                <>
+                                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                                        👋 Bonjour <strong>{user?.nom}</strong>
+                                    </div>
+                                    <button
+                                        onClick={logout}
+                                        disabled={authLoading}
+                                        className="btn-primary"
+                                        style={{ width: 'auto', padding: '8px 16px' }}
+                                    >
+                                        {authLoading ? '⏳' : '🚪'} Déconnexion
+                                    </button>
+
+                                    <ProtectedRoute>
+                                        <button style={{
+                                            background: '#10B981',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}>
+                                            ➕ Poster une annonce
+                                        </button>
+                                    </ProtectedRoute>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        className="btn-primary"
+                                        style={{ width: 'auto', padding: '8px 16px' }}
+                                        onClick={() => {
+                                            console.log('🔄 Ouverture modal connexion...')
+                                        }}
+                                    >
+                                        🔑 Connexion
+                                    </button>
+                                    <button style={{
+                                        background: '#10B981',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '6px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                            onClick={() => {
+                                                console.log('🔄 Ouverture modal inscription...')
+                                            }}>
+                                        📝 S'inscrire
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
 
-                    {/* Barre de recherche avec vraies villes */}
+                    {/* Barre de recherche */}
                     <div style={{
                         display: 'flex',
                         gap: '1rem',
@@ -445,6 +559,23 @@ function App() {
                             <>Plus de <strong>10,000 annonces</strong> dans tout le Cameroun</>
                         )}
                     </p>
+
+                    {/* 🆕 Indicateur de statut d'authentification */}
+                    {isAuthenticated && (
+                        <div style={{
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: '8px',
+                            padding: '0.75rem',
+                            marginTop: '1rem',
+                            display: 'inline-block'
+                        }}>
+                            <span style={{ color: '#059669', fontWeight: '600' }}>
+                                ✅ Connecté en tant que {user?.nom}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="cameroon-flag">
                         <span className="flag-color green"></span>
                         <span className="flag-color red"></span>
@@ -452,7 +583,7 @@ function App() {
                     </div>
                 </div>
 
-                {/* Grille des catégories dynamiques */}
+                {/* Grille des catégories */}
                 <h3 style={{
                     fontSize: '1.5rem',
                     fontWeight: '600',
@@ -546,7 +677,7 @@ function App() {
                     </div>
                 )}
 
-                {/* Call to action */}
+                {/* Call to action avec état auth */}
                 <div style={{
                     background: 'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)',
                     color: 'white',
@@ -560,22 +691,85 @@ function App() {
                     <p style={{ marginBottom: '2rem', opacity: 0.9 }}>
                         Rejoignez des milliers de Camerounais qui font confiance à CamerAnnonces
                     </p>
-                    <button style={{
-                        background: 'white',
-                        color: '#0369a1',
-                        border: 'none',
-                        padding: '16px 32px',
-                        borderRadius: '8px',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                    }}>
-                        Commencer maintenant
-                    </button>
+
+                    {isAuthenticated ? (
+                        <div>
+                            <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+                                👋 Bonjour <strong>{user?.nom}</strong> !
+                            </p>
+                            <button style={{
+                                background: 'white',
+                                color: '#0369a1',
+                                border: 'none',
+                                padding: '16px 32px',
+                                borderRadius: '8px',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                marginRight: '1rem'
+                            }}>
+                                ➕ Publier une annonce
+                            </button>
+                            <button style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                border: '2px solid white',
+                                padding: '14px 30px',
+                                borderRadius: '8px',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                            }}>
+                                📋 Mes annonces
+                            </button>
+                        </div>
+                    ) : (
+                        <button style={{
+                            background: 'white',
+                            color: '#0369a1',
+                            border: 'none',
+                            padding: '16px 32px',
+                            borderRadius: '8px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}>
+                            Commencer maintenant
+                        </button>
+                    )}
                 </div>
+
+                {/* 🆕 Demo de ProtectedRoute */}
+                <ProtectedRoute>
+                    <div style={{
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '2px solid rgba(16, 185, 129, 0.3)',
+                        borderRadius: '12px',
+                        padding: '2rem',
+                        textAlign: 'center',
+                        marginTop: '2rem'
+                    }}>
+                        <h4 style={{ color: '#059669', marginBottom: '1rem' }}>
+                            🔐 Zone Utilisateur Connecté
+                        </h4>
+                        <p style={{ color: '#065f46', marginBottom: '1rem' }}>
+                            Cette section n'est visible que pour les utilisateurs connectés !
+                        </p>
+                        <div style={{
+                            background: 'white',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            display: 'inline-block'
+                        }}>
+                            <strong>Profil :</strong> {user?.nom}<br/>
+                            <strong>Téléphone :</strong> {user?.telephone}<br/>
+                            <strong>Plan :</strong> {user?.planActuel}
+                        </div>
+                    </div>
+                </ProtectedRoute>
             </main>
 
-            {/* Footer simple */}
+            {/* Footer */}
             <footer style={{
                 background: '#1f2937',
                 color: 'white',
@@ -584,6 +778,11 @@ function App() {
             }}>
                 <div className="container">
                     <p>© 2025 CamerAnnonces - Made with ❤️ in Cameroon 🇨🇲</p>
+                    {isAuthenticated && (
+                        <p style={{ fontSize: '0.9rem', opacity: 0.7, marginTop: '0.5rem' }}>
+                            Connecté en tant que {user?.nom} • Plan {user?.planActuel}
+                        </p>
+                    )}
                 </div>
             </footer>
         </div>

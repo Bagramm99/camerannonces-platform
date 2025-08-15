@@ -1,5 +1,6 @@
 com\camerannonces\repository\QuartierRepository.class
 com\camerannonces\service\UserService$1.class
+com\camerannonces\jwt\JwtService$TokenInfo.class
 com\camerannonces\service\SearchService.class
 com\camerannonces\enums\ListingStatus.class
 com\camerannonces\dto\ListingResponse.class
@@ -55,7 +56,9 @@ com\camerannonces\service\ImageService.class
 com\camerannonces\dto\QuartierResponse.class
 com\camerannonces\jwt\JwtAuthenticationFilter.class
 com\camerannonces\repository\ListingRepository.class
+com\camerannonces\jwt\JwtException.class
 com\camerannonces\controller\CategoryController.class
+com\camerannonces\jwt\JwtService.class
 com\camerannonces\config\DatabaseConfig.class
 com\camerannonces\entity\City.class
 com\camerannonces\dto\UserResponse.class
