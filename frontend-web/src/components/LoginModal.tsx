@@ -7,12 +7,14 @@ interface LoginModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSwitchToRegister?: () => void;
+    onSwitchToForgotPassword?: () => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({
                                                    isOpen,
                                                    onClose,
-                                                   onSwitchToRegister
+                                                   onSwitchToRegister,
+                                                   onSwitchToForgotPassword
                                                }) => {
     const { login, isLoading, error, clearError } = useAuth();
 
@@ -284,6 +286,32 @@ const LoginModal: React.FC<LoginModalProps> = ({
                                 {formErrors.motDePasse}
                             </p>
                         )}
+                    </div>
+
+                    {/* Lien mot de passe oublié */}
+                    <div style={{
+                        textAlign: 'right',
+                        marginBottom: '1rem'
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                handleClose();
+                                onSwitchToForgotPassword?.();
+                            }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#0369a1',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                textDecoration: 'underline'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#0284c7'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#0369a1'}
+                        >
+                            🔓 Mot de passe oublié ?
+                        </button>
                     </div>
 
                     {/* Bouton de connexion */}

@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginModal from './components/LoginModal'
 import RegisterModal from './components/RegisterModal'
+import ForgotPasswordModal from './components/ForgotPasswordModal'
 import './App.css'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
     // 🆕 États pour les modals
     const [showLoginModal, setShowLoginModal] = useState(false)
     const [showRegisterModal, setShowRegisterModal] = useState(false)
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
 
     // 🆕 États pour les données dynamiques
     const [categories, setCategories] = useState<any[]>([])
@@ -148,6 +150,13 @@ function App() {
     const closeModals = () => {
         setShowLoginModal(false)
         setShowRegisterModal(false)
+        setShowForgotPasswordModal(false)
+    }
+
+    const openForgotPasswordModal = () => {
+        setShowForgotPasswordModal(true)
+        setShowLoginModal(false)
+        setShowRegisterModal(false)
     }
 
     // 🆕 Nouvelles fonctions utilisant le Context (pour les tests)
@@ -248,11 +257,17 @@ function App() {
                 isOpen={showLoginModal}
                 onClose={closeModals}
                 onSwitchToRegister={openRegisterModal}
+                onSwitchToForgotPassword={openForgotPasswordModal}
             />
             <RegisterModal
                 isOpen={showRegisterModal}
                 onClose={closeModals}
                 onSwitchToLogin={openLoginModal}
+            />
+            <ForgotPasswordModal
+                isOpen={showForgotPasswordModal}
+                onClose={closeModals}
+                onBackToLogin={openLoginModal}
             />
 
             {/* Panel de test avec nouveaux boutons Context */}
