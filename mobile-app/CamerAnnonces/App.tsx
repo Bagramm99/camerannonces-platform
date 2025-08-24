@@ -1,45 +1,40 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// App.tsx - Version corrigée avec couleurs visibles
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
+export default function App() {
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>🇨🇲 CamerAnnonces</Text>
+            <Text style={styles.subtitle}>App mobile fonctionne parfaitement !</Text>
+            <Text style={styles.success}>✅ Connexion réussie</Text>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#0066CC', // Bleu CamerAnnonces
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#FFFFFF', // Blanc
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 18,
+        color: '#FFFFFF', // Blanc
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    success: {
+        fontSize: 16,
+        color: '#00FF00', // Vert vif
+        fontWeight: 'bold',
+    },
 });
-
-export default App;
