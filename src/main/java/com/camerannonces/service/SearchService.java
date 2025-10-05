@@ -4,8 +4,10 @@ import com.camerannonces.entity.Listing;
 import com.camerannonces.enums.EtatProduit;
 import com.camerannonces.enums.ListingStatus;
 import com.camerannonces.repository.ListingRepository;
+import com.camerannonces.util.KeywordEnricher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -13,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
@@ -21,17 +26,69 @@ public class SearchService {
     private ListingRepository listingRepository;
 
     /**
-     * Recherche simple par mot-clé
+     * Recherche simple par mot-clé avec enrichissement intelligent
      */
     public Page<Listing> searchByKeyword(String keyword, Pageable pageable) {
-        return listingRepository.searchByKeyword(keyword, ListingStatus.ACTIVE, pageable);
+        String enrichedKeyword = KeywordEnricher.enrich(keyword);
+
+        // Découper en mots individuels et chercher avec chacun
+        String[] words = enrichedKeyword.split("\\s+");
+        Set<Listing> allResults = new HashSet<>();
+
+        // Chercher avec chaque mot
+        for (String word : words) {
+            if (word.length() >= 3) { // Ignorer les mots trop courts
+                Page<Listing> results = listingRepository.searchByKeyword(word, "ACTIVE", PageRequest.of(0, 100));
+                allResults.addAll(results.getContent());
+            }
+        }
+
+        // Convertir Set en List et paginer
+        List<Listing> resultList = allResults.stream()
+                .sorted((a, b) -> b.getDateCreation().compareTo(a.getDateCreation()))
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), resultList.size());
+
+        if (start >= resultList.size()) {
+            return new PageImpl<>(List.of(), pageable, resultList.size());
+        }
+
+        List<Listing> pageContent = resultList.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, resultList.size());
     }
 
     /**
-     * Recherche avec filtres basiques
+     * Recherche avec filtres basiques et enrichissement intelligent
      */
     public Page<Listing> searchWithBasicFilters(String keyword, Long categoryId, String ville, Pageable pageable) {
-        return listingRepository.searchWithFilters(keyword, categoryId, ville, ListingStatus.ACTIVE, pageable);
+        String enrichedKeyword = KeywordEnricher.enrich(keyword);
+
+        // Découper et chercher
+        String[] words = enrichedKeyword.split("\\s+");
+        Set<Listing> allResults = new HashSet<>();
+
+        for (String word : words) {
+            if (word.length() >= 3) {
+                Page<Listing> results = listingRepository.searchWithFilters(word, categoryId, ville, "ACTIVE", PageRequest.of(0, 100));
+                allResults.addAll(results.getContent());
+            }
+        }
+
+        List<Listing> resultList = allResults.stream()
+                .sorted((a, b) -> b.getDateCreation().compareTo(a.getDateCreation()))
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), resultList.size());
+
+        if (start >= resultList.size()) {
+            return new PageImpl<>(List.of(), pageable, resultList.size());
+        }
+
+        List<Listing> pageContent = resultList.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, resultList.size());
     }
 
     /**
@@ -140,12 +197,11 @@ public class SearchService {
     }
 
     /**
-     * Recherche avec tri personnalisé
+     * Recherche avec tri personnalisé et enrichissement intelligent
      */
     public Page<Listing> searchWithCustomSort(String keyword, Long categoryId, String ville,
                                               String sortBy, String sortDirection, int page, int size) {
 
-        // Créer le sort
         Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
                 Sort.Direction.DESC : Sort.Direction.ASC;
 
@@ -170,7 +226,30 @@ public class SearchService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return listingRepository.searchWithFilters(keyword, categoryId, ville, ListingStatus.ACTIVE, pageable);
+            String enrichedKeyword = KeywordEnricher.enrich(keyword);
+            String[] words = enrichedKeyword.split("\\s+");
+            Set<Listing> allResults = new HashSet<>();
+
+            for (String word : words) {
+                if (word.length() >= 3) {
+                    Page<Listing> results = listingRepository.searchWithFilters(word, categoryId, ville, "ACTIVE", PageRequest.of(0, 100));
+                    allResults.addAll(results.getContent());
+                }
+            }
+
+            List<Listing> resultList = allResults.stream()
+                    .sorted((a, b) -> b.getDateCreation().compareTo(a.getDateCreation()))
+                    .collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), resultList.size());
+
+            if (start >= resultList.size()) {
+                return new PageImpl<>(List.of(), pageable, resultList.size());
+            }
+
+            List<Listing> pageContent = resultList.subList(start, end);
+            return new PageImpl<>(pageContent, pageable, resultList.size());
         } else {
             return listingRepository.findWithFilters(categoryId, ville, null, null, null,
                     null, null, ListingStatus.ACTIVE, pageable);
@@ -178,12 +257,25 @@ public class SearchService {
     }
 
     /**
-     * Obtenir des suggestions de recherche
+     * Obtenir des suggestions de recherche avec enrichissement intelligent
      */
     public List<Listing> getSuggestions(String keyword, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        Page<Listing> results = listingRepository.searchByKeyword(keyword, ListingStatus.ACTIVE, pageable);
-        return results.getContent();
+        String enrichedKeyword = KeywordEnricher.enrich(keyword);
+        String[] words = enrichedKeyword.split("\\s+");
+        Set<Listing> allResults = new HashSet<>();
+
+        for (String word : words) {
+            if (word.length() >= 3) {
+                Page<Listing> results = listingRepository.searchByKeyword(word, "ACTIVE", PageRequest.of(0, limit));
+                allResults.addAll(results.getContent());
+                if (allResults.size() >= limit) break;
+            }
+        }
+
+        return allResults.stream()
+                .sorted((a, b) -> b.getDateCreation().compareTo(a.getDateCreation()))
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -195,13 +287,11 @@ public class SearchService {
                                         Boolean paiementMobileMoney, Boolean isBoutique,
                                         String sortBy, String sortDirection, int page, int size) {
 
-        // Créer le pageable avec tri
         Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ?
                 Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(direction, sortBy != null ? sortBy : "dateCreation");
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Pour l'instant, utiliser les filtres de base
         // TODO: Ajouter support pour livraisonDomicile, paiementMobileMoney, isBoutique
         return listingRepository.findWithFilters(
                 categoryId, ville, quartier, minPrix, maxPrix,
@@ -210,14 +300,24 @@ public class SearchService {
     }
 
     /**
-     * Compter les résultats de recherche
+     * Compter les résultats de recherche avec enrichissement intelligent
      */
     public long countSearchResults(String keyword, Long categoryId, String ville) {
         if (keyword != null && !keyword.trim().isEmpty()) {
-            Page<Listing> results = listingRepository.searchWithFilters(
-                    keyword, categoryId, ville, ListingStatus.ACTIVE, PageRequest.of(0, 1)
-            );
-            return results.getTotalElements();
+            String enrichedKeyword = KeywordEnricher.enrich(keyword);
+            String[] words = enrichedKeyword.split("\\s+");
+            Set<Listing> allResults = new HashSet<>();
+
+            for (String word : words) {
+                if (word.length() >= 3) {
+                    Page<Listing> results = listingRepository.searchWithFilters(
+                            word, categoryId, ville, "ACTIVE", PageRequest.of(0, 100)
+                    );
+                    allResults.addAll(results.getContent());
+                }
+            }
+
+            return allResults.size();
         } else {
             Page<Listing> results = listingRepository.findWithFilters(
                     categoryId, ville, null, null, null, null, null,

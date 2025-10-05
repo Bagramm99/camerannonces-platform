@@ -12,61 +12,79 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ListingCard from '../../components/listings/ListingCard';
+import { searchService } from '../../services/searchService';
 
 const SearchScreen = ({ navigation, route }) => {
     const [searchQuery, setSearchQuery] = useState(route?.params?.query || '');
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [_page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
-    const handleSearch = React.useCallback(async (reset = true) => {
-        if (!searchQuery.trim()) return;
+    // Fonction de recherche RÉELLE
+    const handleSearch = async (reset = true) => {
+        if (!searchQuery.trim()) {
+            setListings([]);
+            setTotalElements(0);
+            return;
+        }
 
         setLoading(true);
         try {
-            // Simuler une recherche (remplace par ton service réel)
-            const mockResults = [
-                {
-                    id: 1,
-                    titre: 'iPhone 13 Pro Max',
-                    description: 'Excellent état, boîte complète',
-                    prix: 450000,
-                    prix_negociable: true,
-                    etat_produit: 'TRES_BON',
-                    ville: 'Douala',
-                    quartier: 'Bonanjo',
-                    date_creation: new Date().toISOString(),
-                    is_premium: true,
-                    is_urgent: false,
-                    vues: 125,
-                    images: [],
-                    category: { emoji: '📱', nom: 'Téléphones' }
+            const currentPage = reset ? 0 : page;
+
+            console.log('📱 Recherche mobile:', searchQuery, 'page:', currentPage);
+
+            // APPEL RÉEL AU BACKEND
+            const response = await searchService.searchByKeyword(
+                searchQuery,
+                currentPage,
+                20
+            );
+
+            console.log('📦 Réponse reçue:', response);
+
+            if (response.success) {
+                if (reset) {
+                    setListings(response.listings);
+                    setPage(1);
+                } else {
+                    setListings(prev => [...prev, ...response.listings]);
+                    setPage(prev => prev + 1);
                 }
-            ];
 
-            if (reset) {
-                setListings(mockResults);
-                setPage(2);
+                setTotalPages(response.totalPages);
+                setTotalElements(response.totalElements);
+
+                console.log(`✅ ${response.totalElements} résultat(s) trouvé(s)`);
             } else {
-                setListings(prev => [...prev, ...mockResults]);
-                setPage(prev => prev + 1);
+                Alert.alert('Erreur', 'Impossible de rechercher');
             }
-
-            setHasMore(mockResults.length === 10);
         } catch (error) {
-            console.error('Search error:', error);
-            Alert.alert('Erreur', 'Impossible de rechercher');
+            console.error('❌ Erreur recherche:', error);
+            Alert.alert(
+                'Erreur de connexion',
+                'Impossible de se connecter au serveur. Vérifiez votre connexion.'
+            );
         } finally {
             setLoading(false);
         }
-    }, [searchQuery]);
+    };
 
+    // Debounce pour éviter trop d'appels
     useEffect(() => {
-        if (searchQuery.trim()) {
-            handleSearch();
-        }
-    }, [handleSearch, searchQuery]);
+        const delaySearch = setTimeout(() => {
+            if (searchQuery.trim()) {
+                handleSearch(true);
+            } else {
+                setListings([]);
+                setTotalElements(0);
+            }
+        }, 800); // 800ms de délai
+
+        return () => clearTimeout(delaySearch);
+    }, [searchQuery]);
 
     const handleListingPress = (listing) => {
         navigation.navigate('ListingDetail', { listingId: listing.id });
@@ -79,20 +97,40 @@ const SearchScreen = ({ navigation, route }) => {
         />
     );
 
-    const renderEmpty = () => (
-        <View style={styles.emptyContainer}>
-            <Icon name="search-off" size={80} color="#ccc" />
-            <Text style={styles.emptyTitle}>
-                {searchQuery ? 'Aucun résultat' : 'Rechercher des annonces'}
-            </Text>
-            <Text style={styles.emptyText}>
-                {searchQuery
-                    ? 'Essayez avec d\'autres mots-clés'
-                    : 'Tapez ce que vous recherchez'
-                }
-            </Text>
-        </View>
-    );
+    const renderEmpty = () => {
+        if (loading) return null;
+
+        return (
+            <View style={styles.emptyContainer}>
+                <Icon name="search-off" size={80} color="#ccc" />
+                <Text style={styles.emptyTitle}>
+                    {searchQuery ? 'Aucun résultat trouvé' : 'Rechercher des annonces'}
+                </Text>
+                <Text style={styles.emptyText}>
+                    {searchQuery
+                        ? `Aucune annonce trouvée pour "${searchQuery}"`
+                        : 'Tapez ce que vous recherchez'
+                    }
+                </Text>
+            </View>
+        );
+    };
+
+    const renderFooter = () => {
+        if (!loading || page === 0) return null;
+
+        return (
+            <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color="#0066CC" />
+            </View>
+        );
+    };
+
+    const handleLoadMore = () => {
+        if (!loading && page < totalPages) {
+            handleSearch(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -105,24 +143,28 @@ const SearchScreen = ({ navigation, route }) => {
                         placeholder="Que recherchez-vous ?"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
-                        onSubmitEditing={() => handleSearch(true)}
-                        autoFocus
+                        autoFocus={!route?.params?.query}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity
-                            onPress={() => setSearchQuery('')}
+                            onPress={() => {
+                                setSearchQuery('');
+                                setListings([]);
+                                setTotalElements(0);
+                            }}
                             style={styles.clearButton}
                         >
                             <Icon name="clear" size={20} color="#666" />
                         </TouchableOpacity>
                     )}
                 </View>
-                <TouchableOpacity
-                    style={styles.searchButton}
-                    onPress={() => handleSearch(true)}
-                >
-                    <Text style={styles.searchButtonText}>Rechercher</Text>
-                </TouchableOpacity>
+
+                {/* Compteur de résultats */}
+                {totalElements > 0 && !loading && (
+                    <Text style={styles.resultCount}>
+                        {totalElements} résultat{totalElements > 1 ? 's' : ''} pour "{searchQuery}"
+                    </Text>
+                )}
             </View>
 
             {/* Résultats */}
@@ -131,15 +173,18 @@ const SearchScreen = ({ navigation, route }) => {
                 renderItem={renderListingItem}
                 keyExtractor={(item) => item.id.toString()}
                 ListEmptyComponent={renderEmpty}
-                onEndReached={() => hasMore && !loading && handleSearch(false)}
-                onEndReachedThreshold={0.1}
+                ListFooterComponent={renderFooter}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={listings.length === 0 ? styles.emptyList : undefined}
+                contentContainerStyle={listings.length === 0 ? styles.emptyList : styles.listContent}
             />
 
-            {loading && (
+            {/* Loading overlay (premier chargement uniquement) */}
+            {loading && page === 0 && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="#0066CC" />
+                    <Text style={styles.loadingText}>Recherche en cours...</Text>
                 </View>
             )}
         </View>
@@ -163,7 +208,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fa',
         borderRadius: 25,
         paddingHorizontal: 15,
-        marginBottom: 10,
     },
     searchInput: {
         flex: 1,
@@ -175,22 +219,21 @@ const styles = StyleSheet.create({
     clearButton: {
         padding: 5,
     },
-    searchButton: {
-        backgroundColor: '#0066CC',
-        paddingVertical: 12,
-        borderRadius: 25,
-        alignItems: 'center',
-    },
-    searchButtonText: {
-        color: '#fff',
-        fontSize: 16,
+    resultCount: {
+        marginTop: 10,
+        fontSize: 14,
+        color: '#0066CC',
         fontWeight: '600',
+    },
+    listContent: {
+        paddingBottom: 20,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 40,
+        marginTop: 60,
     },
     emptyList: {
         flexGrow: 1,
@@ -201,6 +244,7 @@ const styles = StyleSheet.create({
         color: '#333',
         marginTop: 20,
         marginBottom: 10,
+        textAlign: 'center',
     },
     emptyText: {
         fontSize: 16,
@@ -214,8 +258,17 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.9)',
         justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#666',
+    },
+    footerLoader: {
+        paddingVertical: 20,
         alignItems: 'center',
     },
 });

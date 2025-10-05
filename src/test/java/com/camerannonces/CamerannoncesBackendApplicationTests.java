@@ -209,7 +209,7 @@ class CamerannoncesBackendApplicationTests {
             // Test recherche textuelle
             var searchResults = listingRepository.searchByKeyword(
                     "iPhone",
-                    ListingStatus.ACTIVE,
+                    "ACTIVE",
                     PageRequest.of(0, 5)
             );
 

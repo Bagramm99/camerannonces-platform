@@ -21,7 +21,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     // RECHERCHES DE BASE
     // ============================================
 
-    // Recherche par statut (CORRIGÉ - Une seule méthode de chaque)
+    // Recherche par statut
     List<Listing> findByStatutOrderByDateCreationDesc(ListingStatus statut);
     Page<Listing> findByStatut(ListingStatus statut, Pageable pageable);
 
@@ -106,27 +106,100 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                                   Pageable pageable);
 
     // ============================================
-    // RECHERCHE TEXTUELLE
+    // RECHERCHE TEXTUELLE AMÉLIORÉE (FULL-TEXT SEARCH)
     // ============================================
 
-    // Recherche dans titre et description
-    @Query("SELECT l FROM Listing l WHERE l.statut = :statut AND " +
-            "(LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    /**
+     * Recherche AMÉLIORÉE avec Full-Text Search PostgreSQL
+     * Supporte la recherche en français avec variations de mots
+     * Exemple: "voiture" trouvera "Toyota", "automobile", etc.
+     */
+    @Query(value = """
+        SELECT l.* FROM listings l
+        LEFT JOIN categories c ON l.category_id = c.id
+        WHERE l.statut = :statut
+        AND (
+            -- Full-text search sur titre + description (français)
+            to_tsvector('french', COALESCE(l.titre, '') || ' ' || COALESCE(l.description, ''))
+            @@ plainto_tsquery('french', :keyword)
+            
+            -- OU recherche exacte (fallback)
+            OR LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            
+            -- OU recherche dans le nom de la catégorie
+            OR LOWER(c.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.nom_anglais) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+        ORDER BY 
+            -- Priorité: correspondance exacte dans le titre
+            CASE WHEN LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%')) THEN 0 
+                 WHEN LOWER(c.nom) LIKE LOWER(CONCAT('%', :keyword, '%')) THEN 1
+                 ELSE 2 
+            END,
+            l.is_premium DESC,
+            l.date_creation DESC
+        """,
+            countQuery = """
+        SELECT COUNT(*) FROM listings l
+        LEFT JOIN categories c ON l.category_id = c.id
+        WHERE l.statut = :statut
+        AND (
+            to_tsvector('french', COALESCE(l.titre, '') || ' ' || COALESCE(l.description, ''))
+            @@ plainto_tsquery('french', :keyword)
+            OR LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.nom_anglais) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+        """,
+            nativeQuery = true)
     Page<Listing> searchByKeyword(@Param("keyword") String keyword,
-                                  @Param("statut") ListingStatus statut,
+                                  @Param("statut") String statut,
                                   Pageable pageable);
 
-    // Recherche textuelle avec filtres
-    @Query("SELECT l FROM Listing l WHERE l.statut = :statut AND " +
-            "(:categoryId IS NULL OR l.category.id = :categoryId) AND " +
-            "(:ville IS NULL OR l.ville = :ville) AND " +
-            "(LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    /**
+     * Recherche textuelle AMÉLIORÉE avec filtres (catégorie, ville)
+     */
+    @Query(value = """
+        SELECT l.* FROM listings l
+        LEFT JOIN categories c ON l.category_id = c.id
+        WHERE l.statut = :statut
+        AND (:categoryId IS NULL OR l.category_id = :categoryId)
+        AND (:ville IS NULL OR LOWER(l.ville) = LOWER(:ville))
+        AND (
+            :keyword IS NULL 
+            OR to_tsvector('french', COALESCE(l.titre, '') || ' ' || COALESCE(l.description, ''))
+               @@ plainto_tsquery('french', :keyword)
+            OR LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+        ORDER BY 
+            CASE WHEN LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%')) THEN 0 ELSE 1 END,
+            l.is_premium DESC,
+            l.date_creation DESC
+        """,
+            countQuery = """
+        SELECT COUNT(*) FROM listings l
+        LEFT JOIN categories c ON l.category_id = c.id
+        WHERE l.statut = :statut
+        AND (:categoryId IS NULL OR l.category_id = :categoryId)
+        AND (:ville IS NULL OR LOWER(l.ville) = LOWER(:ville))
+        AND (
+            :keyword IS NULL 
+            OR to_tsvector('french', COALESCE(l.titre, '') || ' ' || COALESCE(l.description, ''))
+               @@ plainto_tsquery('french', :keyword)
+            OR LOWER(l.titre) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.nom) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+        """,
+            nativeQuery = true)
     Page<Listing> searchWithFilters(@Param("keyword") String keyword,
                                     @Param("categoryId") Long categoryId,
                                     @Param("ville") String ville,
-                                    @Param("statut") ListingStatus statut,
+                                    @Param("statut") String statut,
                                     Pageable pageable);
 
     // ============================================
