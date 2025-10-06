@@ -3,7 +3,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Screens
@@ -17,6 +17,10 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import MyListingsScreen from '../screens/user/MyListingsScreen';
 import FavoritesScreen from '../screens/user/FavoritesScreen';
+import EditProfileScreen from '../screens/user/EditProfileScreen';
+import NotificationsScreen from '../screens/user/NotificationsScreen';
+import SettingsScreen from '../screens/user/SettingsScreen';
+import HelpScreen from '../screens/user/HelpScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -36,7 +40,7 @@ const MainTabs = () => {
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
-                tabBarIcon: ({color, size }) => {
+                tabBarIcon: ({ color, size }) => {
                     let iconName = '';
 
                     switch (route.name) {
@@ -70,7 +74,6 @@ const MainTabs = () => {
                     backgroundColor: '#ffffff',
                     borderTopWidth: 1,
                     borderTopColor: '#e0e0e0',
-                    // Hauteur dynamique basée sur les safe areas
                     height: 60 + insets.bottom,
                     paddingBottom: Math.max(insets.bottom, 5),
                     paddingTop: 8,
@@ -88,7 +91,6 @@ const MainTabs = () => {
                 headerTitleStyle: {
                     fontWeight: 'bold',
                 },
-                // Assurer que le contenu ne passe pas sous la tab bar
                 tabBarHideOnKeyboard: true,
             })}
         >
@@ -132,6 +134,8 @@ const AppNavigator = () => {
                     {isLoggedIn ? (
                         <>
                             <Stack.Screen name="MainTabs" component={MainTabs} />
+
+                            {/* Screens de listings */}
                             <Stack.Screen
                                 name="CategoryScreen"
                                 component={CategoryScreen}
@@ -152,11 +156,53 @@ const AppNavigator = () => {
                                     headerTintColor: '#fff',
                                 }}
                             />
+
+                            {/* Screens utilisateur */}
                             <Stack.Screen
                                 name="MyListings"
                                 component={MyListingsScreen}
                                 options={{
                                     title: 'Mes Annonces',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="EditProfile"
+                                component={EditProfileScreen}
+                                options={{
+                                    title: 'Modifier le Profil',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="Notifications"
+                                component={NotificationsScreen}
+                                options={{
+                                    title: 'Notifications',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="Settings"
+                                component={SettingsScreen}
+                                options={{
+                                    title: 'Paramètres',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="Help"
+                                component={HelpScreen}
+                                options={{
+                                    title: 'Aide & Support',
                                     headerShown: true,
                                     headerStyle: { backgroundColor: '#0066CC' },
                                     headerTintColor: '#fff',

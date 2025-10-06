@@ -84,25 +84,37 @@ const ProfileScreen = ({ navigation }) => {
                     <Icon name="chevron-right" size={24} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => navigation.navigate('EditProfile')}
+                >
                     <Icon name="person" size={24} color="#0066CC" />
                     <Text style={styles.menuText}>Modifier le profil</Text>
                     <Icon name="chevron-right" size={24} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => navigation.navigate('Notifications')}
+                >
                     <Icon name="notifications" size={24} color="#0066CC" />
                     <Text style={styles.menuText}>Notifications</Text>
                     <Icon name="chevron-right" size={24} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => navigation.navigate('Help')}
+                >
                     <Icon name="help" size={24} color="#0066CC" />
                     <Text style={styles.menuText}>Aide & Support</Text>
                     <Icon name="chevron-right" size={24} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => navigation.navigate('Settings')}
+                >
                     <Icon name="settings" size={24} color="#0066CC" />
                     <Text style={styles.menuText}>Paramètres</Text>
                     <Icon name="chevron-right" size={24} color="#ccc" />
