@@ -1,4 +1,4 @@
-// src/services/categoryService.ts - VERSION AVEC VRAIS APPELS API
+// src/services/categoryService.ts
 import { api } from './api';
 
 export interface Category {
@@ -11,13 +11,23 @@ export interface Category {
     is_active: boolean;
 }
 
+// ✅ Normalisiert camelCase → snake_case
+const normalizeCategory = (data: any): Category => ({
+    id: data.id,
+    nom: data.nom,
+    nom_anglais: data.nomAnglais ?? data.nom_anglais ?? '',
+    emoji: data.emoji ?? '',
+    description: data.description ?? '',
+    ordre_affichage: data.ordreAffichage ?? data.ordre_affichage ?? 0,
+    is_active: data.isActive ?? data.is_active ?? true,
+});
+
 class CategoryService {
     async getAllCategories(): Promise<Category[]> {
         try {
             const response = await api.get('/categories');
-            console.log('Categories response:', response.data);
-            // Extraire le tableau categories de la réponse
-            return response.data.categories || response.data;
+            const raw = response.data.categories || response.data;
+            return Array.isArray(raw) ? raw.map(normalizeCategory) : [];
         } catch (error) {
             console.error('Erreur chargement catégories:', error);
             throw error;
@@ -27,7 +37,7 @@ class CategoryService {
     async getCategoryById(id: number): Promise<Category> {
         try {
             const response = await api.get(`/categories/${id}`);
-            return response.data;
+            return normalizeCategory(response.data);
         } catch (error) {
             console.error('Erreur chargement catégorie:', error);
             throw error;

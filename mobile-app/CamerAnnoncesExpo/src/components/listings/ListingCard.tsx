@@ -10,6 +10,11 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { formatPrice, formatDate, formatLocation } from '../../utils/formatters';
 
+interface ListingImage {
+    url: string;
+    is_principale: boolean;
+}
+
 interface ListingCardProps {
     listing: {
         id: number;
@@ -24,10 +29,7 @@ interface ListingCardProps {
         is_premium: boolean;
         is_urgent: boolean;
         vues: number;
-        images?: Array<{
-            url: string;
-            is_principale: boolean;
-        }>;
+        images?: ListingImage[];
         category?: {
             emoji: string;
             nom: string;
@@ -36,10 +38,13 @@ interface ListingCardProps {
     onPress: () => void;
 }
 
+// ✅ Komponentenfunktion ÖFFNET hier
 const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
-    const mainImage = listing.images?.find(img => img.is_principale) || listing.images?.[0];
 
-    const getConditionColor = (condition: string) => {
+    // ✅ mainImage ist INNERHALB der Funktion
+    const mainImage = listing.images?.find((img: ListingImage) => img.is_principale) ?? listing.images?.[0];
+
+    const getConditionColor = (condition: string): string => {
         switch (condition) {
             case 'NEUF': return '#00C851';
             case 'TRES_BON': return '#2E7D32';
@@ -50,7 +55,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
         }
     };
 
-    const getConditionText = (condition: string) => {
+    const getConditionText = (condition: string): string => {
         switch (condition) {
             case 'NEUF': return 'Neuf';
             case 'TRES_BON': return 'Très bon';
@@ -67,7 +72,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
             onPress={onPress}
             activeOpacity={0.7}
         >
-            {/* Badges premium/urgent */}
             <View style={styles.badgesContainer}>
                 {listing.is_premium && (
                     <View style={styles.premiumBadge}>
@@ -84,7 +88,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
             </View>
 
             <View style={styles.content}>
-                {/* Image */}
                 <View style={styles.imageContainer}>
                     {mainImage ? (
                         <Image
@@ -97,8 +100,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                             <Icon name="image" size={40} color="#ccc" />
                         </View>
                     )}
-
-                    {/* Catégorie sur l'image */}
                     {listing.category && (
                         <View style={styles.categoryBadge}>
                             <Text style={styles.categoryText}>
@@ -108,17 +109,14 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                     )}
                 </View>
 
-                {/* Informations */}
                 <View style={styles.info}>
                     <Text style={styles.title} numberOfLines={2}>
                         {listing.titre}
                     </Text>
-
                     <Text style={styles.description} numberOfLines={2}>
                         {listing.description}
                     </Text>
 
-                    {/* Prix */}
                     <View style={styles.priceContainer}>
                         {listing.prix ? (
                             <>
@@ -134,7 +132,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                         )}
                     </View>
 
-                    {/* État et localisation */}
                     <View style={styles.detailsRow}>
                         <View style={styles.conditionContainer}>
                             <View style={[
@@ -145,7 +142,6 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                                 {getConditionText(listing.etat_produit)}
                             </Text>
                         </View>
-
                         {(listing.ville || listing.quartier) && (
                             <View style={styles.locationContainer}>
                                 <Icon name="location-on" size={14} color="#666" />
@@ -156,13 +152,11 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                         )}
                     </View>
 
-                    {/* Stats et date */}
                     <View style={styles.footer}>
                         <View style={styles.statsContainer}>
                             <Icon name="visibility" size={14} color="#666" />
                             <Text style={styles.statsText}>{listing.vues}</Text>
                         </View>
-
                         <Text style={styles.dateText}>
                             {formatDate(listing.date_creation)}
                         </Text>
@@ -171,6 +165,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
             </View>
         </TouchableOpacity>
     );
+// ✅ Komponentenfunktion SCHLIESST hier
 };
 
 const styles = StyleSheet.create({
@@ -180,10 +175,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 15,
         marginBottom: 15,
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
@@ -229,18 +221,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginLeft: 2,
     },
-    content: {
-        flexDirection: 'row',
-    },
-    imageContainer: {
-        width: 120,
-        height: 120,
-        position: 'relative',
-    },
-    image: {
-        width: '100%',
-        height: '100%',
-    },
+    content: { flexDirection: 'row' },
+    imageContainer: { width: 120, height: 120, position: 'relative' },
+    image: { width: '100%', height: '100%' },
     noImage: {
         width: '100%',
         height: '100%',
@@ -257,15 +240,8 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
         borderRadius: 8,
     },
-    categoryText: {
-        fontSize: 10,
-        color: '#fff',
-        fontWeight: '600',
-    },
-    info: {
-        flex: 1,
-        padding: 15,
-    },
+    categoryText: { fontSize: 10, color: '#fff', fontWeight: '600' },
+    info: { flex: 1, padding: 15 },
     title: {
         fontSize: 16,
         fontWeight: '600',
@@ -284,11 +260,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
-    price: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#0066CC',
-    },
+    price: { fontSize: 18, fontWeight: 'bold', color: '#0066CC' },
     negotiable: {
         fontSize: 12,
         color: '#00C851',
@@ -307,49 +279,29 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
-    conditionContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
+    conditionContainer: { flexDirection: 'row', alignItems: 'center' },
     conditionDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
         marginRight: 5,
     },
-    conditionText: {
-        fontSize: 12,
-        color: '#666',
-    },
+    conditionText: { fontSize: 12, color: '#666' },
     locationContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
         justifyContent: 'flex-end',
     },
-    locationText: {
-        fontSize: 12,
-        color: '#666',
-        marginLeft: 2,
-    },
+    locationText: { fontSize: 12, color: '#666', marginLeft: 2 },
     footer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    statsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    statsText: {
-        fontSize: 12,
-        color: '#666',
-        marginLeft: 2,
-    },
-    dateText: {
-        fontSize: 12,
-        color: '#999',
-    },
+    statsContainer: { flexDirection: 'row', alignItems: 'center' },
+    statsText: { fontSize: 12, color: '#666', marginLeft: 2 },
+    dateText: { fontSize: 12, color: '#999' },
 });
 
 export default ListingCard;
