@@ -9,6 +9,8 @@ import {
     ScrollView,
     Alert,
     ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -72,7 +74,11 @@ const CreateListingScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
             <View style={styles.header}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
@@ -83,113 +89,120 @@ const CreateListingScreen = ({ navigation }) => {
                 <Text style={styles.title}>Publier une annonce</Text>
             </View>
 
-            <View style={styles.form}>
-                {/* Titre */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Titre de l'annonce *</Text>
-                    <TextInput
-                        style={[styles.input, errors.titre && styles.inputError]}
-                        placeholder="Ex: iPhone 13 Pro Max en parfait état"
-                        value={formData.titre}
-                        onChangeText={(text) => handleInputChange('titre', text)}
-                        maxLength={200}
-                    />
-                    {errors.titre && <Text style={styles.errorText}>{errors.titre}</Text>}
-                </View>
-
-                {/* Description */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Description *</Text>
-                    <TextInput
-                        style={[styles.textArea, errors.description && styles.inputError]}
-                        placeholder="Décrivez votre produit en détail..."
-                        value={formData.description}
-                        onChangeText={(text) => handleInputChange('description', text)}
-                        multiline
-                        numberOfLines={6}
-                        textAlignVertical="top"
-                        maxLength={1000}
-                    />
-                    {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
-                </View>
-
-                {/* Prix */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Prix (FCFA)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ex: 450000"
-                        value={formData.prix}
-                        onChangeText={(text) => handleInputChange('prix', text)}
-                        keyboardType="numeric"
-                    />
-                </View>
-
-                {/* État */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>État du produit</Text>
-                    <View style={styles.conditionButtons}>
-                        {['NEUF', 'TRES_BON', 'BON', 'MOYEN'].map((condition) => (
-                            <TouchableOpacity
-                                key={condition}
-                                style={[
-                                    styles.conditionButton,
-                                    formData.etat_produit === condition && styles.conditionButtonActive
-                                ]}
-                                onPress={() => handleInputChange('etat_produit', condition)}
-                            >
-                                <Text style={[
-                                    styles.conditionText,
-                                    formData.etat_produit === condition && styles.conditionTextActive
-                                ]}>
-                                    {condition === 'TRES_BON' ? 'Très bon' : condition.toLowerCase()}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.form}>
+                    {/* Titre */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Titre de l'annonce *</Text>
+                        <TextInput
+                            style={[styles.input, errors.titre && styles.inputError]}
+                            placeholder="Ex: iPhone 13 Pro Max en parfait état"
+                            value={formData.titre}
+                            onChangeText={(text) => handleInputChange('titre', text)}
+                            maxLength={200}
+                        />
+                        {errors.titre && <Text style={styles.errorText}>{errors.titre}</Text>}
                     </View>
-                </View>
 
-                {/* Ville */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Ville</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ex: Douala, Yaoundé..."
-                        value={formData.ville}
-                        onChangeText={(text) => handleInputChange('ville', text)}
-                    />
-                </View>
+                    {/* Description */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Description *</Text>
+                        <TextInput
+                            style={[styles.textArea, errors.description && styles.inputError]}
+                            placeholder="Décrivez votre produit en détail..."
+                            value={formData.description}
+                            onChangeText={(text) => handleInputChange('description', text)}
+                            multiline
+                            numberOfLines={6}
+                            textAlignVertical="top"
+                            maxLength={1000}
+                        />
+                        {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
+                    </View>
 
-                {/* Téléphone */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Numéro de contact *</Text>
-                    <TextInput
-                        style={[styles.input, errors.telephone_contact && styles.inputError]}
-                        placeholder="237698123456"
-                        value={formData.telephone_contact}
-                        onChangeText={(text) => handleInputChange('telephone_contact', text)}
-                        keyboardType="phone-pad"
-                    />
-                    {errors.telephone_contact && <Text style={styles.errorText}>{errors.telephone_contact}</Text>}
-                </View>
+                    {/* Prix */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Prix (FCFA)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ex: 450000"
+                            value={formData.prix}
+                            onChangeText={(text) => handleInputChange('prix', text)}
+                            keyboardType="numeric"
+                        />
+                    </View>
 
-                {/* Bouton publier */}
-                <TouchableOpacity
-                    style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-                    onPress={handleSubmit}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <>
-                            <Icon name="publish" size={20} color="#fff" />
-                            <Text style={styles.submitButtonText}>Publier l'annonce</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
+                    {/* État */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>État du produit</Text>
+                        <View style={styles.conditionButtons}>
+                            {['NEUF', 'TRES_BON', 'BON', 'MOYEN'].map((condition) => (
+                                <TouchableOpacity
+                                    key={condition}
+                                    style={[
+                                        styles.conditionButton,
+                                        formData.etat_produit === condition && styles.conditionButtonActive
+                                    ]}
+                                    onPress={() => handleInputChange('etat_produit', condition)}
+                                >
+                                    <Text style={[
+                                        styles.conditionText,
+                                        formData.etat_produit === condition && styles.conditionTextActive
+                                    ]}>
+                                        {condition === 'TRES_BON' ? 'Très Bon' : condition.charAt(0) + condition.slice(1).toLowerCase()}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Ville */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Ville</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ex: Douala, Yaoundé..."
+                            value={formData.ville}
+                            onChangeText={(text) => handleInputChange('ville', text)}
+                        />
+                    </View>
+
+                    {/* Téléphone */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Numéro de contact *</Text>
+                        <TextInput
+                            style={[styles.input, errors.telephone_contact && styles.inputError]}
+                            placeholder="+237698123456"
+                            value={formData.telephone_contact}
+                            onChangeText={(text) => handleInputChange('telephone_contact', text)}
+                            keyboardType="phone-pad"
+                        />
+                        {errors.telephone_contact && <Text style={styles.errorText}>{errors.telephone_contact}</Text>}
+                    </View>
+
+                    {/* Bouton publier */}
+                    <TouchableOpacity
+                        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                        onPress={handleSubmit}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <>
+                                <Icon name="publish" size={20} color="#fff" />
+                                <Text style={styles.submitButtonText}>Publier l'annonce</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -214,6 +227,12 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#333',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingBottom: 120,
     },
     form: {
         padding: 20,
@@ -275,7 +294,6 @@ const styles = StyleSheet.create({
     conditionText: {
         fontSize: 14,
         color: '#666',
-        textTransform: 'capitalize',
     },
     conditionTextActive: {
         color: '#fff',
