@@ -1,5 +1,5 @@
 // src/screens/listings/CreateListingScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -13,9 +13,12 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { api } from '../../services/api';
+import { categoryService, Category } from '../../services/categoryService';
 
 const CreateListingScreen = ({ navigation }) => {
     const [formData, setFormData] = useState({
+        category_id: 1,
         titre: '',
         description: '',
         prix: '',
@@ -25,7 +28,29 @@ const CreateListingScreen = ({ navigation }) => {
         telephone_contact: '',
     });
     const [loading, setLoading] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Kategorien vom Backend laden
+    useEffect(() => {
+        loadCategories();
+    }, []);
+
+    const loadCategories = async () => {
+        try {
+            const cats = await categoryService.getAllCategories();
+            setCategories(cats);
+            if (cats.length > 0) {
+                setFormData(prev => ({ ...prev, category_id: cats[0].id }));
+            }
+        } catch (error) {
+            console.error('Erreur chargement catégories:', error);
+            Alert.alert('Erreur', 'Impossible de charger les catégories');
+        } finally {
+            setLoadingCategories(false);
+        }
+    };
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -47,6 +72,8 @@ const CreateListingScreen = ({ navigation }) => {
 
         if (!formData.telephone_contact.trim()) {
             newErrors.telephone_contact = 'Le numéro de contact est requis';
+        } else if (!/^(\+?237)?6[0-9]{8}$/.test(formData.telephone_contact.trim())) {
+            newErrors.telephone_contact = 'Format invalide (ex: 237698123456)';
         }
 
         setErrors(newErrors);
@@ -58,20 +85,57 @@ const CreateListingScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            // Mock submission
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // ✅ Echte API-Anfrage
+            const response = await api.post('/listings', {
+                category_id: formData.category_id,
+                titre: formData.titre.trim(),
+                description: formData.description.trim(),
+                prix: formData.prix ? parseInt(formData.prix) : null,
+                prix_negociable: formData.prix_negociable,
+                etat_produit: formData.etat_produit,
+                ville: formData.ville.trim() || null,
+                telephone_contact: formData.telephone_contact.trim(),
+            });
 
-            Alert.alert(
-                'Succès',
-                'Votre annonce a été publiée avec succès !',
-                [{ text: 'OK', onPress: () => navigation.goBack() }]
-            );
+            if (response.status === 201 || response.status === 200) {
+                Alert.alert(
+                    'Succès',
+                    'Votre annonce a été publiée avec succès !',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                navigation.navigate('MainTabs', { screen: 'Accueil' });
+                            }
+                        }
+                    ]
+                );
+            }
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de publier l\'annonce');
+            console.error('Erreur publication:', error);
+
+            let errorMessage = 'Impossible de publier l\'annonce. Vérifiez votre connexion.';
+
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.status === 401) {
+                errorMessage = 'Vous devez être connecté pour publier une annonce.';
+            }
+
+            Alert.alert('Erreur', errorMessage);
         } finally {
             setLoading(false);
         }
     };
+
+    if (loadingCategories) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0066CC" />
+                <Text style={styles.loadingText}>Chargement...</Text>
+            </View>
+        );
+    }
 
     return (
         <KeyboardAvoidingView
@@ -96,6 +160,38 @@ const CreateListingScreen = ({ navigation }) => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.form}>
+
+                    {/* Catégorie */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Catégorie *</Text>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.categoryScroll}
+                        >
+                            <View style={styles.categoryButtons}>
+                                {categories.map((cat) => (
+                                    <TouchableOpacity
+                                        key={cat.id}
+                                        style={[
+                                            styles.categoryButton,
+                                            formData.category_id === cat.id && styles.categoryButtonActive
+                                        ]}
+                                        onPress={() => handleInputChange('category_id', cat.id)}
+                                    >
+                                        <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                                        <Text style={[
+                                            styles.categoryText,
+                                            formData.category_id === cat.id && styles.categoryTextActive
+                                        ]}>
+                                            {cat.nom}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </View>
+
                     {/* Titre */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Titre de l'annonce *</Text>
@@ -122,6 +218,9 @@ const CreateListingScreen = ({ navigation }) => {
                             textAlignVertical="top"
                             maxLength={1000}
                         />
+                        <Text style={styles.charCount}>
+                            {formData.description.length} / 1000
+                        </Text>
                         {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
                     </View>
 
@@ -132,29 +231,45 @@ const CreateListingScreen = ({ navigation }) => {
                             style={styles.input}
                             placeholder="Ex: 450000"
                             value={formData.prix}
-                            onChangeText={(text) => handleInputChange('prix', text)}
+                            onChangeText={(text) => handleInputChange('prix', text.replace(/[^0-9]/g, ''))}
                             keyboardType="numeric"
                         />
+                        <TouchableOpacity
+                            style={styles.checkboxRow}
+                            onPress={() => handleInputChange('prix_negociable', !formData.prix_negociable)}
+                        >
+                            <Icon
+                                name={formData.prix_negociable ? 'check-box' : 'check-box-outline-blank'}
+                                size={24}
+                                color="#0066CC"
+                            />
+                            <Text style={styles.checkboxText}>Prix négociable</Text>
+                        </TouchableOpacity>
                     </View>
 
                     {/* État */}
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>État du produit</Text>
+                        <Text style={styles.label}>État du produit *</Text>
                         <View style={styles.conditionButtons}>
-                            {['NEUF', 'TRES_BON', 'BON', 'MOYEN'].map((condition) => (
+                            {[
+                                { value: 'NEUF', label: 'Neuf' },
+                                { value: 'TRES_BON', label: 'Très Bon' },
+                                { value: 'BON', label: 'Bon' },
+                                { value: 'MOYEN', label: 'Moyen' },
+                            ].map((condition) => (
                                 <TouchableOpacity
-                                    key={condition}
+                                    key={condition.value}
                                     style={[
                                         styles.conditionButton,
-                                        formData.etat_produit === condition && styles.conditionButtonActive
+                                        formData.etat_produit === condition.value && styles.conditionButtonActive
                                     ]}
-                                    onPress={() => handleInputChange('etat_produit', condition)}
+                                    onPress={() => handleInputChange('etat_produit', condition.value)}
                                 >
                                     <Text style={[
                                         styles.conditionText,
-                                        formData.etat_produit === condition && styles.conditionTextActive
+                                        formData.etat_produit === condition.value && styles.conditionTextActive
                                     ]}>
-                                        {condition === 'TRES_BON' ? 'Très Bon' : condition.charAt(0) + condition.slice(1).toLowerCase()}
+                                        {condition.label}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
@@ -166,7 +281,7 @@ const CreateListingScreen = ({ navigation }) => {
                         <Text style={styles.label}>Ville</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Ex: Douala, Yaoundé..."
+                            placeholder="Ex: Douala, Yaoundé, Bafoussam..."
                             value={formData.ville}
                             onChangeText={(text) => handleInputChange('ville', text)}
                         />
@@ -182,7 +297,9 @@ const CreateListingScreen = ({ navigation }) => {
                             onChangeText={(text) => handleInputChange('telephone_contact', text)}
                             keyboardType="phone-pad"
                         />
-                        {errors.telephone_contact && <Text style={styles.errorText}>{errors.telephone_contact}</Text>}
+                        {errors.telephone_contact && (
+                            <Text style={styles.errorText}>{errors.telephone_contact}</Text>
+                        )}
                     </View>
 
                     {/* Bouton publier */}
@@ -210,6 +327,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f8f9fa',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#666',
     },
     header: {
         flexDirection: 'row',
@@ -246,6 +374,42 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 8,
     },
+    categoryScroll: {
+        marginHorizontal: -5,
+    },
+    categoryButtons: {
+        flexDirection: 'row',
+        paddingHorizontal: 5,
+    },
+    categoryButton: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        marginRight: 10,
+        backgroundColor: '#fff',
+        minWidth: 80,
+    },
+    categoryButtonActive: {
+        backgroundColor: '#0066CC',
+        borderColor: '#0066CC',
+    },
+    categoryEmoji: {
+        fontSize: 24,
+        marginBottom: 4,
+    },
+    categoryText: {
+        fontSize: 12,
+        color: '#666',
+        textAlign: 'center',
+    },
+    categoryTextActive: {
+        color: '#fff',
+        fontWeight: '600',
+    },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',
@@ -265,6 +429,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         minHeight: 120,
     },
+    charCount: {
+        fontSize: 12,
+        color: '#999',
+        textAlign: 'right',
+        marginTop: 4,
+    },
     inputError: {
         borderColor: '#ff4444',
     },
@@ -272,6 +442,16 @@ const styles = StyleSheet.create({
         color: '#ff4444',
         fontSize: 14,
         marginTop: 5,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    checkboxText: {
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 8,
     },
     conditionButtons: {
         flexDirection: 'row',

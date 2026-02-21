@@ -176,7 +176,7 @@ const CategoryScreen = ({ route, navigation }) => {
             </Text>
             <TouchableOpacity
                 style={styles.createButton}
-                onPress={() => navigation.navigate('Publier')}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Publier' })}
             >
                 <Text style={styles.createButtonText}>
                     Publier la première annonce
