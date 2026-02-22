@@ -15,6 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { api } from '../../services/api';
 import { categoryService, Category } from '../../services/categoryService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CreateListingScreen = ({ navigation }) => {
     const [formData, setFormData] = useState({
@@ -85,17 +86,28 @@ const CreateListingScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            // ✅ Echte API-Anfrage
-            const response = await api.post('/listings', {
-                category_id: formData.category_id,
+            // ✅ Backend erwartet camelCase!
+            const payload = {
+                categoryId: formData.category_id,
                 titre: formData.titre.trim(),
                 description: formData.description.trim(),
                 prix: formData.prix ? parseInt(formData.prix) : null,
-                prix_negociable: formData.prix_negociable,
-                etat_produit: formData.etat_produit,
+                prixNegociable: formData.prix_negociable,
+                etatProduit: formData.etat_produit,
                 ville: formData.ville.trim() || null,
-                telephone_contact: formData.telephone_contact.trim(),
-            });
+                telephoneContact: formData.telephone_contact.trim(),
+            };
+
+            console.log('📤 Envoi au backend:', payload);
+
+            // 🔍 DEBUG: Token prüfen
+            const token = await AsyncStorage.getItem('access_token');
+            console.log('🔑 Token beim POST:', token ? 'VORHANDEN ✅' : 'FEHLT ❌');
+            console.log('🔑 Token Start:', token?.substring(0, 30));
+
+            const response = await api.post('/listings', payload);
+
+            console.log('✅ Réponse backend:', response.data);
 
             if (response.status === 201 || response.status === 200) {
                 Alert.alert(
@@ -112,14 +124,20 @@ const CreateListingScreen = ({ navigation }) => {
                 );
             }
         } catch (error) {
-            console.error('Erreur publication:', error);
+            console.error('❌ Erreur complète:', error);
+            console.error('❌ Response:', error.response?.data);
+            console.error('❌ Status:', error.response?.status);
 
-            let errorMessage = 'Impossible de publier l\'annonce. Vérifiez votre connexion.';
+            let errorMessage = 'Impossible de publier l\'annonce.';
 
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.response?.status === 401) {
-                errorMessage = 'Vous devez être connecté pour publier une annonce.';
+                errorMessage = 'Vous devez être connecté pour publier.';
+            } else if (error.response?.status === 400) {
+                errorMessage = 'Données invalides. Vérifiez tous les champs.';
+            } else if (!error.response) {
+                errorMessage = 'Pas de connexion au serveur. Vérifiez votre réseau.';
             }
 
             Alert.alert('Erreur', errorMessage);
@@ -234,17 +252,28 @@ const CreateListingScreen = ({ navigation }) => {
                             onChangeText={(text) => handleInputChange('prix', text.replace(/[^0-9]/g, ''))}
                             keyboardType="numeric"
                         />
-                        <TouchableOpacity
-                            style={styles.checkboxRow}
-                            onPress={() => handleInputChange('prix_negociable', !formData.prix_negociable)}
-                        >
-                            <Icon
-                                name={formData.prix_negociable ? 'check-box' : 'check-box-outline-blank'}
-                                size={24}
-                                color="#0066CC"
-                            />
-                            <Text style={styles.checkboxText}>Prix négociable</Text>
-                        </TouchableOpacity>
+
+                        {/* Prix négociable Checkbox */}
+                        <View style={styles.checkboxContainer}>
+                            <TouchableOpacity
+                                style={styles.checkboxRow}
+                                onPress={() => {
+                                    const newValue = !formData.prix_negociable;
+                                    handleInputChange('prix_negociable', newValue);
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[
+                                    styles.checkbox,
+                                    formData.prix_negociable && styles.checkboxChecked
+                                ]}>
+                                    {formData.prix_negociable && (
+                                        <Icon name="check" size={18} color="#fff" />
+                                    )}
+                                </View>
+                                <Text style={styles.checkboxText}>Prix négociable</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     {/* État */}
@@ -443,15 +472,31 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 5,
     },
+    checkboxContainer: {
+        marginTop: 10,
+    },
     checkboxRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 10,
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#ddd',
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    checkboxChecked: {
+        backgroundColor: '#0066CC',
+        borderColor: '#0066CC',
     },
     checkboxText: {
         fontSize: 16,
         color: '#333',
-        marginLeft: 8,
     },
     conditionButtons: {
         flexDirection: 'row',

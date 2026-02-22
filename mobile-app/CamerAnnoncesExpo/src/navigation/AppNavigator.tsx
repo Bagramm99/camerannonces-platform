@@ -3,8 +3,9 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAuth } from '../contexts/AuthContext';
 
 // Screens
 import HomeScreen from '../screens/main/HomeScreen';
@@ -125,13 +126,25 @@ const MainTabs = () => {
 
 // Stack Navigation principal avec SafeAreaProvider pour Expo
 const AppNavigator = () => {
-    const isLoggedIn = true; // Tu remplaceras par ton state d'authentification
+    const { isAuthenticated, loading } = useAuth();
+
+    // Loading Screen während Auth-Check
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+                <ActivityIndicator size="large" color="#0066CC" />
+                <Text style={{ marginTop: 10, fontSize: 16, color: '#666' }}>
+                    Chargement...
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <SafeAreaProvider>
             <View style={{ flex: 1 }}>
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                         <>
                             <Stack.Screen name="MainTabs" component={MainTabs} />
 

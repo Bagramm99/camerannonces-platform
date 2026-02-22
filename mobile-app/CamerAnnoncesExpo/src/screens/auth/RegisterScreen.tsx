@@ -13,16 +13,18 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { validateEmail, validateCameroonPhone } from '../../utils/formatters';
+import { useAuth } from '../../contexts/AuthContext';
 
 const RegisterScreen = ({ navigation }) => {
+    const { register } = useAuth();
+
     const [formData, setFormData] = useState({
         nom: '',
         telephone: '',
-        email: '',
-        mot_de_passe: '',
-        confirm_password: '',
+        motDePasse: '',
+        confirmPassword: '',
         ville: '',
+        quartier: '',
     });
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -42,25 +44,20 @@ const RegisterScreen = ({ navigation }) => {
         // Validation téléphone
         if (!formData.telephone) {
             newErrors.telephone = 'Le numéro de téléphone est requis';
-        } else if (!validateCameroonPhone(formData.telephone)) {
+        } else if (!/^237[0-9]{9}$/.test(formData.telephone)) {
             newErrors.telephone = 'Format: 237XXXXXXXXX (9 chiffres après 237)';
         }
 
-        // Validation email (optionnel)
-        if (formData.email && !validateEmail(formData.email)) {
-            newErrors.email = 'Adresse email invalide';
-        }
-
         // Validation mot de passe
-        if (!formData.mot_de_passe) {
-            newErrors.mot_de_passe = 'Le mot de passe est requis';
-        } else if (formData.mot_de_passe < 6) {
-            newErrors.mot_de_passe = 'Le mot de passe doit avoir au moins 6 caractères';
+        if (!formData.motDePasse) {
+            newErrors.motDePasse = 'Le mot de passe est requis';
+        } else if (formData.motDePasse.length < 6) {
+            newErrors.motDePasse = 'Le mot de passe doit avoir au moins 6 caractères';
         }
 
         // Confirmation mot de passe
-        if (formData.mot_de_passe !== formData.confirm_password) {
-            newErrors.confirm_password = 'Les mots de passe ne correspondent pas';
+        if (formData.motDePasse !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
         }
 
         setErrors(newErrors);
@@ -83,47 +80,26 @@ const RegisterScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            // Mock registration - remplace par ton service réel
-            const mockResponse = {
-                success: true,
-                message: 'Compte créé avec succès',
-                data: {
-                    token: 'mock-jwt-token',
-                    user: {
-                        id: 1,
-                        nom: formData.nom,
-                        telephone: formData.telephone,
-                        email: formData.email,
-                        ville: formData.ville,
-                        plan_actuel: 'GRATUIT'
-                    }
-                }
-            };
-
-            if (mockResponse.success) {
-                Alert.alert(
-                    'Inscription réussie',
-                    'Votre compte a été créé avec succès !',
-                    [{
-                        text: 'OK',
-                        onPress: () => navigation.replace('MainTabs')
-                    }]
-                );
-            } else {
-                Alert.alert('Erreur', mockResponse.message || 'Erreur lors de l\'inscription');
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
+            await register(
+                formData.nom.trim(),
+                formData.telephone,
+                formData.motDePasse,
+                formData.ville.trim() || undefined,
+                formData.quartier.trim() || undefined
+            );
+            // AuthContext gère la navigation automatiquement
+        } catch (error: any) {
+            console.error('❌ Register error:', error);
             Alert.alert(
                 'Erreur d\'inscription',
-                'Vérifiez votre connexion internet et réessayez'
+                error.message || 'Vérifiez vos informations et réessayez'
             );
         } finally {
             setLoading(false);
         }
     };
 
-    const formatPhoneNumber = (text) => {
+    const formatPhoneNumber = (text: string) => {
         if (text.length > 0 && !text.startsWith('237')) {
             return '237' + text.replace(/[^0-9]/g, '');
         }
@@ -200,28 +176,6 @@ const RegisterScreen = ({ navigation }) => {
                         )}
                     </View>
 
-                    {/* Email (optionnel) */}
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Email (optionnel)</Text>
-                        <View style={[
-                            styles.inputWrapper,
-                            errors.email && styles.inputError
-                        ]}>
-                            <Icon name="email" size={20} color="#666" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="jean.dupont@email.com"
-                                value={formData.email}
-                                onChangeText={(text) => handleInputChange('email', text)}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
-                        {errors.email && (
-                            <Text style={styles.errorText}>{errors.email}</Text>
-                        )}
-                    </View>
-
                     {/* Ville */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Ville</Text>
@@ -237,19 +191,34 @@ const RegisterScreen = ({ navigation }) => {
                         </View>
                     </View>
 
+                    {/* Quartier */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Quartier</Text>
+                        <View style={styles.inputWrapper}>
+                            <Icon name="location-on" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Akwa, Bastos, Makepe..."
+                                value={formData.quartier}
+                                onChangeText={(text) => handleInputChange('quartier', text)}
+                                autoCapitalize="words"
+                            />
+                        </View>
+                    </View>
+
                     {/* Mot de passe */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Mot de passe *</Text>
                         <View style={[
                             styles.inputWrapper,
-                            errors.mot_de_passe && styles.inputError
+                            errors.motDePasse && styles.inputError
                         ]}>
                             <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Minimum 6 caractères"
-                                value={formData.mot_de_passe}
-                                onChangeText={(text) => handleInputChange('mot_de_passe', text)}
+                                value={formData.motDePasse}
+                                onChangeText={(text) => handleInputChange('motDePasse', text)}
                                 secureTextEntry={!showPassword}
                                 autoCapitalize="none"
                             />
@@ -264,8 +233,8 @@ const RegisterScreen = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
                         </View>
-                        {errors.mot_de_passe && (
-                            <Text style={styles.errorText}>{errors.mot_de_passe}</Text>
+                        {errors.motDePasse && (
+                            <Text style={styles.errorText}>{errors.motDePasse}</Text>
                         )}
                     </View>
 
@@ -274,14 +243,14 @@ const RegisterScreen = ({ navigation }) => {
                         <Text style={styles.label}>Confirmer le mot de passe *</Text>
                         <View style={[
                             styles.inputWrapper,
-                            errors.confirm_password && styles.inputError
+                            errors.confirmPassword && styles.inputError
                         ]}>
                             <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Retapez votre mot de passe"
-                                value={formData.confirm_password}
-                                onChangeText={(text) => handleInputChange('confirm_password', text)}
+                                value={formData.confirmPassword}
+                                onChangeText={(text) => handleInputChange('confirmPassword', text)}
                                 secureTextEntry={!showConfirmPassword}
                                 autoCapitalize="none"
                             />
@@ -296,8 +265,8 @@ const RegisterScreen = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
                         </View>
-                        {errors.confirm_password && (
-                            <Text style={styles.errorText}>{errors.confirm_password}</Text>
+                        {errors.confirmPassword && (
+                            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
                         )}
                     </View>
 

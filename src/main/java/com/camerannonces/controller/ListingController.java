@@ -30,7 +30,7 @@ public class ListingController {
      */
     @PostMapping
     public ResponseEntity<?> createListing(@RequestBody Map<String, Object> request,
-                                           @RequestHeader("User-ID") Long userId) {
+                                           @RequestAttribute("userId") Long userId) {
         try {
             Long categoryId = Long.valueOf(request.get("categoryId").toString());
             String titre = (String) request.get("titre");
@@ -141,7 +141,7 @@ public class ListingController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateListing(@PathVariable Long id,
                                            @RequestBody Map<String, Object> request,
-                                           @RequestHeader("User-ID") Long userId) {
+                                           @RequestAttribute("userId") Long userId) {
         try {
             String titre = (String) request.get("titre");
             String description = (String) request.get("description");
@@ -174,7 +174,7 @@ public class ListingController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteListing(@PathVariable Long id,
-                                           @RequestHeader("User-ID") Long userId) {
+                                           @RequestAttribute("userId") Long userId) {
         try {
             listingService.deleteListing(id, userId);
 
@@ -196,7 +196,7 @@ public class ListingController {
      */
     @PostMapping("/{id}/mark-sold")
     public ResponseEntity<?> markAsSold(@PathVariable Long id,
-                                        @RequestHeader("User-ID") Long userId) {
+                                        @RequestAttribute("userId") Long userId) {
         try {
             listingService.markAsSold(id, userId);
 
@@ -218,7 +218,7 @@ public class ListingController {
      */
     @PostMapping("/{id}/boost")
     public ResponseEntity<?> boostListing(@PathVariable Long id,
-                                          @RequestHeader("User-ID") Long userId) {
+                                          @RequestAttribute("userId") Long userId) {
         try {
             listingService.boostListing(id, userId);
 

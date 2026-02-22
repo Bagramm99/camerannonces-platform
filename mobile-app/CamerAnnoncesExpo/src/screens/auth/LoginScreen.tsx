@@ -13,12 +13,14 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
+    const { login } = useAuth();
+
     const [formData, setFormData] = useState({
         telephone: '',
-        mot_de_passe: '',
+        motDePasse: '',
     });
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -35,10 +37,10 @@ const LoginScreen = ({ navigation }) => {
         }
 
         // Validation mot de passe
-        if (!formData.mot_de_passe) {
-            newErrors.mot_de_passe = 'Le mot de passe est requis';
-        } else if (formData.mot_de_passe < 6) {
-            newErrors.mot_de_passe = 'Le mot de passe doit avoir au moins 6 caractères';
+        if (!formData.motDePasse) {
+            newErrors.motDePasse = 'Le mot de passe est requis';
+        } else if (formData.motDePasse.length < 6) {
+            newErrors.motDePasse = 'Le mot de passe doit avoir au moins 6 caractères';
         }
 
         setErrors(newErrors);
@@ -61,37 +63,20 @@ const LoginScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            const response = await authService.login({
-                telephone: formData.telephone,
-                mot_de_passe: formData.mot_de_passe,
-            });
-
-            if (response.success) {
-                // Stocker le token et les infos utilisateur
-                await authService.saveAuthData(response.data);
-
-                if (response.data) {
-                    Alert.alert(
-                        'Connexion réussie',
-                        `Bienvenue ${response.data.user.nom} !`,
-                        [{text: 'OK', onPress: () => navigation.replace('MainTabs')}]
-                    );
-                }
-            } else {
-                Alert.alert('Erreur', response.message || 'Identifiants incorrects');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
+            await login(formData.telephone, formData.motDePasse);
+            // AuthContext gère la navigation automatiquement
+        } catch (error: any) {
+            console.error('❌ Login error:', error);
             Alert.alert(
                 'Erreur de connexion',
-                'Vérifiez votre connexion internet et réessayez'
+                error.message || 'Vérifiez vos identifiants et réessayez'
             );
         } finally {
             setLoading(false);
         }
     };
 
-    const formatPhoneNumber = (text) => {
+    const formatPhoneNumber = (text: string) => {
         // Auto-complétion du 237
         if (text.length > 0 && !text.startsWith('237')) {
             return '237' + text.replace(/[^0-9]/g, '');
@@ -147,14 +132,14 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.label}>Mot de passe</Text>
                         <View style={[
                             styles.inputWrapper,
-                            errors.mot_de_passe && styles.inputError
+                            errors.motDePasse && styles.inputError
                         ]}>
                             <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder="Votre mot de passe"
-                                value={formData.mot_de_passe}
-                                onChangeText={(text) => handleInputChange('mot_de_passe', text)}
+                                value={formData.motDePasse}
+                                onChangeText={(text) => handleInputChange('motDePasse', text)}
                                 secureTextEntry={!showPassword}
                                 autoCapitalize="none"
                             />
@@ -169,8 +154,8 @@ const LoginScreen = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
                         </View>
-                        {errors.mot_de_passe && (
-                            <Text style={styles.errorText}>{errors.mot_de_passe}</Text>
+                        {errors.motDePasse && (
+                            <Text style={styles.errorText}>{errors.motDePasse}</Text>
                         )}
                     </View>
 

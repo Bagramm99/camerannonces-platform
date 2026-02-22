@@ -10,15 +10,15 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { NavigationProp, CommonActions } from '@react-navigation/native';
-import { authService } from '../../services/authService';
+import { NavigationProp } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Types
 interface User {
     nom?: string;
     telephone?: string;
     ville?: string;
-    plan_actuel?: 'GRATUIT' | 'PREMIUM';
+    planActuel?: 'GRATUIT' | 'PREMIUM';
 }
 
 interface ProfileScreenProps {
@@ -38,26 +38,8 @@ const COLORS = {
 } as const;
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        loadUserData();
-    }, [loadUserData]);
-
-    const loadUserData = useCallback(async () => {
-        try {
-            setError(null);
-            const userData = await authService.getCurrentUser();
-            setUser(userData);
-        } catch (error) {
-            console.error('Error loading user:', error);
-            setError('Erreur lors du chargement des données utilisateur');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const { user, logout } = useAuth();
+    const [loading, setLoading] = useState(false);
 
     const handleLogout = useCallback(() => {
         Alert.alert(
@@ -70,25 +52,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await authService.logout();
-                            navigation.dispatch(
-                                CommonActions.reset({
-                                    index: 0,
-                                    routes: [{ name: 'Auth' }],
-                                })
-                            );
+                            setLoading(true);
+                            await logout();
+                            // Navigation wird automatisch durch AuthContext gehandhabt
                         } catch (error) {
                             console.error('Logout error:', error);
                             Alert.alert(
                                 'Erreur',
-                                'Une erreur est survenue lors de la déconnexion. Veuillez réessayer.'
+                                'Une erreur est survenue lors de la déconnexion.'
                             );
+                        } finally {
+                            setLoading(false);
                         }
                     }
                 }
             ]
         );
-    }, [navigation]);
+    }, [logout]);
 
     const navigateToScreen = useCallback((screenName: string) => {
         try {
@@ -108,24 +88,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <ActivityIndicator
                     size="large"
                     color={COLORS.primary}
-                    accessibilityLabel="Chargement des données utilisateur"
+                    accessibilityLabel="Chargement"
                 />
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View style={styles.errorContainer}>
-                <Icon name="error-outline" size={48} color={COLORS.error} />
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity
-                    style={styles.retryButton}
-                    onPress={loadUserData}
-                    accessibilityLabel="Réessayer le chargement"
-                >
-                    <Text style={styles.retryButtonText}>Réessayer</Text>
-                </TouchableOpacity>
             </View>
         );
     }
@@ -220,12 +184,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <View style={styles.planCard}>
                     <Text
                         style={styles.planName}
-                        accessibilityLabel={`Plan actuel: ${user?.plan_actuel || 'GRATUIT'}`}
+                        accessibilityLabel={`Plan actuel: ${user?.planActuel || 'GRATUIT'}`}
                     >
-                        {user?.plan_actuel || 'GRATUIT'}
+                        {user?.planActuel || 'GRATUIT'}
                     </Text>
                     <Text style={styles.planDescription}>
-                        {user?.plan_actuel === 'PREMIUM' ? 'Annonces illimitées' : '3 annonces/mois'}
+                        {user?.planActuel === 'PREMIUM' ? 'Annonces illimitées' : '3 annonces/mois'}
                     </Text>
                 </View>
             </View>
@@ -254,31 +218,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: COLORS.secondary,
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.secondary,
-        paddingHorizontal: 20,
-    },
-    errorText: {
-        fontSize: 16,
-        color: COLORS.error,
-        textAlign: 'center',
-        marginTop: 15,
-        marginBottom: 20,
-    },
-    retryButton: {
-        backgroundColor: COLORS.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-    },
-    retryButtonText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: '600',
     },
     header: {
         backgroundColor: COLORS.primary,
@@ -341,7 +280,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.border,
-        minHeight: 56, // Better touch target
+        minHeight: 56,
     },
     menuText: {
         flex: 1,
@@ -390,7 +329,7 @@ const styles = StyleSheet.create({
         marginVertical: 30,
         paddingVertical: 15,
         borderRadius: 10,
-        minHeight: 48, // Better touch target
+        minHeight: 48,
         shadowColor: COLORS.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
