@@ -17,9 +17,9 @@ const SettingsScreen = () => {
     const [notifications, setNotifications] = React.useState(true);
     const [darkMode, setDarkMode] = React.useState(false);
 
-    // ✅ Action pour aller à l’écran de changement de mot de passe
+    // ✅ Action pour aller à l'écran de changement de mot de passe
     const goToChangePassword = () => {
-        navigation.navigate();
+        navigation.navigate('ChangePassword');
     };
 
     // ✅ Alerte de confirmation pour suppression de compte
@@ -33,8 +33,11 @@ const SettingsScreen = () => {
                     text: 'Supprimer',
                     style: 'destructive',
                     onPress: () => {
-                        console.log('Compte supprimé');
-                        // TODO : appel API de suppression de compte ici
+                        Alert.alert(
+                            'Fonctionnalité à venir',
+                            'La suppression de compte sera bientôt disponible'
+                            // TODO appeler l' API de suppression de compter
+                        );
                     },
                 },
             ]

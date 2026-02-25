@@ -22,6 +22,7 @@ import EditProfileScreen from '../screens/user/EditProfileScreen';
 import NotificationsScreen from '../screens/user/NotificationsScreen';
 import SettingsScreen from '../screens/user/SettingsScreen';
 import HelpScreen from '../screens/user/HelpScreen';
+import ChangePasswordScreen from '../screens/user/ChangePasswordScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -206,6 +207,16 @@ const AppNavigator = () => {
                                 component={SettingsScreen}
                                 options={{
                                     title: 'Paramètres',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="ChangePassword"
+                                component={ChangePasswordScreen}
+                                options={{
+                                    title: 'Changer le mot de passe',
                                     headerShown: true,
                                     headerStyle: { backgroundColor: '#0066CC' },
                                     headerTintColor: '#fff',
