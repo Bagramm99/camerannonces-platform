@@ -59,6 +59,11 @@ public class ListingService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
 
+        // ✅ Telefonnummer bereinigen
+        if (telephoneContact != null && telephoneContact.startsWith("+")) {
+            telephoneContact = telephoneContact.substring(1);
+        }
+
         // Créer l'annonce
         Listing listing = new Listing();
         listing.setUser(user);
@@ -71,7 +76,7 @@ public class ListingService {
         listing.setVille(ville);
         listing.setQuartier(quartier);
         listing.setAdresseComplete(adresseComplete);
-        listing.setTelephoneContact(telephoneContact);
+        listing.setTelephoneContact(telephoneContact); // ✅ Jetzt ohne +
         listing.setEmailContact(emailContact);
 
         // Options de livraison
