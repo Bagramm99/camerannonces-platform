@@ -76,7 +76,7 @@ public class ListingService {
         listing.setVille(ville);
         listing.setQuartier(quartier);
         listing.setAdresseComplete(adresseComplete);
-        listing.setTelephoneContact(telephoneContact); // ✅ Jetzt ohne +
+        listing.setTelephoneContact(telephoneContact); // ✅ Jetzt ohne + jetzt
         listing.setEmailContact(emailContact);
 
         // Options de livraison
