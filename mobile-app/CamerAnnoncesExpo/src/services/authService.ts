@@ -72,7 +72,7 @@ class AuthService {
         }
     }
 
-    // ✅ NOUVEAU: Inscription avec email et country code
+    // ✅ Inscription avec email et country code
     async registerWithEmail(
         nom: string,
         telephone: string,
