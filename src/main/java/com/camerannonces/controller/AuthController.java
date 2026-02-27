@@ -27,7 +27,7 @@ public class AuthController {
     private JwtTokenProvider jwtTokenProvider;
 
     /**
-     * Inscription d'un nouvel utilisateur
+     * Inscription d'un nouvel utilisateur (ancienne méthode)
      * POST /api/auth/register
      */
     @PostMapping("/register")
@@ -64,6 +64,118 @@ public class AuthController {
             response.put("message", "Inscription réussie");
             response.put("user", createUserResponse(user));
             response.put("tokens", jwtResponse);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * ✅ NOUVEAU: Inscription avec email
+     * POST /api/auth/register-with-email
+     */
+    @PostMapping("/register-with-email")
+    public ResponseEntity<?> registerWithEmail(@RequestBody Map<String, String> request) {
+        try {
+            String nom = request.get("nom");
+            String telephone = request.get("telephone");
+            String email = request.get("email");
+            String motDePasse = request.get("motDePasse");
+            String countryCode = request.getOrDefault("countryCode", "+237");
+            String ville = request.get("ville");
+            String quartier = request.get("quartier");
+
+            // Validation
+            if (nom == null || nom.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Le nom est obligatoire"));
+            }
+
+            if (telephone == null || telephone.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Le téléphone est obligatoire"));
+            }
+
+            if (motDePasse == null || motDePasse.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Le mot de passe est obligatoire"));
+            }
+
+            JwtResponse jwtResponse = authService.registerWithEmail(
+                    nom.trim(), telephone.trim(), email != null ? email.trim() : null,
+                    motDePasse, countryCode, ville, quartier
+            );
+
+            User user = authService.validateTokenAndGetUser(jwtResponse.getAccessToken());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", email != null && !email.trim().isEmpty()
+                    ? "Inscription réussie. Veuillez vérifier votre email."
+                    : "Inscription réussie");
+            response.put("user", createUserResponse(user));
+            response.put("tokens", jwtResponse);
+            response.put("needsVerification", email != null && !email.trim().isEmpty());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * ✅ NOUVEAU: Vérifier le code
+     * POST /api/auth/verify-code
+     */
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> request) {
+        try {
+            String telephone = request.get("telephone");
+            String code = request.get("code");
+
+            if (telephone == null || code == null) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Téléphone et code obligatoires"));
+            }
+
+            authService.verifyCode(telephone.trim(), code.trim());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Vérification réussie");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * ✅ NOUVEAU: Renvoyer le code de vérification
+     * POST /api/auth/resend-code
+     */
+    @PostMapping("/resend-code")
+    public ResponseEntity<?> resendCode(@RequestBody Map<String, String> request) {
+        try {
+            String telephone = request.get("telephone");
+
+            if (telephone == null) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Téléphone obligatoire"));
+            }
+
+            authService.resendVerificationCode(telephone.trim());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Code renvoyé avec succès");
 
             return ResponseEntity.ok(response);
 
@@ -244,6 +356,28 @@ public class AuthController {
     }
 
     /**
+     * ✅ NOUVEAU: Vérifier si un email est disponible
+     * GET /api/auth/check-email?email=test@example.com
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        try {
+            boolean available = authService.isEmailAvailable(email);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("available", available);
+            response.put("message", available ? "Email disponible" : "Email déjà utilisé");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
      * Changer le mot de passe
      * POST /api/auth/change-password
      */
@@ -316,6 +450,38 @@ public class AuthController {
     }
 
     /**
+     * ✅ NOUVEAU: Désactiver le compte
+     * POST /api/auth/deactivate-account
+     */
+    @PostMapping("/deactivate-account")
+    public ResponseEntity<?> deactivateAccount(@RequestBody Map<String, String> request,
+                                               @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = extractTokenFromHeader(authHeader);
+            User user = authService.validateTokenAndGetUser(token);
+
+            String motDePasse = request.get("motDePasse");
+
+            if (motDePasse == null || motDePasse.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Mot de passe obligatoire pour confirmation"));
+            }
+
+            authService.deactivateAccount(user.getId(), motDePasse);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Compte désactivé avec succès");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
      * Obtenir des statistiques sur le token
      * GET /api/auth/token-info
      */
@@ -378,6 +544,9 @@ public class AuthController {
         userResponse.put("dateCreation", user.getDateCreation());
         userResponse.put("isActive", user.getIsActive());
         userResponse.put("annoncesPublieesCeMois", user.getAnnoncesPublieesCeMois());
+        userResponse.put("countryCode", user.getCountryCode());
+        userResponse.put("emailVerified", user.getEmailVerified());
+        userResponse.put("phoneVerified", user.getPhoneVerified());
         return userResponse;
     }
 

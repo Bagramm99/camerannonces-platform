@@ -15,6 +15,7 @@ import CreateListingScreen from '../screens/listings/CreateListingScreen';
 import SearchScreen from '../screens/main/SearchScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import VerifyCodeScreen from '../screens/auth/VerifyCodeScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import MyListingsScreen from '../screens/user/MyListingsScreen';
 import FavoritesScreen from '../screens/user/FavoritesScreen';
@@ -23,6 +24,7 @@ import NotificationsScreen from '../screens/user/NotificationsScreen';
 import SettingsScreen from '../screens/user/SettingsScreen';
 import HelpScreen from '../screens/user/HelpScreen';
 import ChangePasswordScreen from '../screens/user/ChangePasswordScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -32,6 +34,23 @@ const AuthStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen
+            name="VerifyCode"
+            component={VerifyCodeScreen}
+            options={{
+                headerShown: true,
+                headerTitle: '',
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+            }}
+        />
+        <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+            options={{
+                headerShown: false,
+            }}
+        />
     </Stack.Navigator>
 );
 

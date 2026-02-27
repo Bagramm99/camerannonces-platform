@@ -30,8 +30,11 @@ public class AuthService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private EmailService emailService;
+
     /**
-     * Inscription d'un nouvel utilisateur avec JWT
+     * Inscription d'un nouvel utilisateur avec JWT (ancienne méthode - téléphone uniquement)
      */
     public JwtResponse register(String nom, String telephone, String motDePasse, String ville, String quartier) {
         // Vérifier si le téléphone existe déjà
@@ -60,11 +63,119 @@ public class AuthService {
         user.setIsActive(true);
         user.setIsBoutique(false);
         user.setAnnoncesPublieesCeMois(0);
+        user.setCountryCode("+237");
 
         User savedUser = userRepository.save(user);
 
         // Générer les tokens JWT
         return jwtTokenProvider.createJwtResponse(telephone, savedUser.getId());
+    }
+
+    /**
+     * ✅ NOUVELLE: Inscription avec email et numéro international
+     */
+    public JwtResponse registerWithEmail(String nom, String telephone, String email,
+                                         String motDePasse, String countryCode,
+                                         String ville, String quartier) {
+
+        // Vérifier si téléphone existe déjà
+        if (userRepository.existsByTelephone(telephone)) {
+            throw new RuntimeException("Ce numéro de téléphone est déjà utilisé");
+        }
+
+        // Vérifier si email existe déjà
+        if (email != null && !email.trim().isEmpty()) {
+            if (userRepository.existsByEmail(email)) {
+                throw new RuntimeException("Cet email est déjà utilisé");
+            }
+        }
+
+        // Valider le mot de passe
+        if (motDePasse == null || motDePasse.length() < 6) {
+            throw new RuntimeException("Le mot de passe doit contenir au moins 6 caractères");
+        }
+
+        // Créer utilisateur
+        User user = new User();
+        user.setNom(nom);
+        user.setTelephone(telephone);
+        user.setEmail(email);
+        user.setCountryCode(countryCode != null ? countryCode : "+237");
+        user.setMotDePasse(passwordEncoder.encode(motDePasse));
+        user.setVille(ville);
+        user.setQuartier(quartier);
+        user.setPlanActuel(PlanType.GRATUIT);
+        user.setIsActive(true);
+        user.setIsBoutique(false);
+        user.setEmailVerified(false);
+        user.setPhoneVerified(false);
+        user.setAnnoncesPublieesCeMois(0);
+
+        // Générer code de vérification
+        String code = emailService.generateVerificationCode();
+        user.setVerificationCode(code);
+        user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10));
+
+        user = userRepository.save(user);
+
+        // Envoyer email de vérification
+        if (email != null && !email.trim().isEmpty()) {
+            emailService.sendVerificationEmail(email, code);
+        }
+
+        // Créer tokens (l'utilisateur peut se connecter même sans vérification)
+        return jwtTokenProvider.createJwtResponse(telephone, user.getId());
+    }
+
+    /**
+     * ✅ NOUVELLE: Vérifier le code (email ou SMS)
+     */
+    public void verifyCode(String telephone, String code) {
+        User user = userRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier si code est valide
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code)) {
+            throw new RuntimeException("Code de vérification invalide");
+        }
+
+        // Vérifier si code est expiré
+        if (user.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Code de vérification expiré");
+        }
+
+        // Marquer comme vérifié
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            user.setEmailVerified(true);
+        } else {
+            user.setPhoneVerified(true);
+        }
+
+        // Supprimer le code
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiry(null);
+
+        userRepository.save(user);
+    }
+
+    /**
+     * ✅ NOUVELLE: Renvoyer le code de vérification
+     */
+    public void resendVerificationCode(String telephone) {
+        User user = userRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Générer nouveau code
+        String code = emailService.generateVerificationCode();
+        user.setVerificationCode(code);
+        user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10));
+
+        userRepository.save(user);
+
+        // Renvoyer email
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            emailService.sendVerificationEmail(user.getEmail(), code);
+        }
     }
 
     /**
@@ -221,6 +332,24 @@ public class AuthService {
         }
 
         user.setMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
+        userRepository.save(user);
+    }
+
+    /**
+     * Désactiver le compte utilisateur
+     */
+    @Transactional
+    public void deactivateAccount(Long userId, String motDePasse) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier le mot de passe
+        if (!passwordEncoder.matches(motDePasse, user.getMotDePasse())) {
+            throw new RuntimeException("Mot de passe incorrect");
+        }
+
+        // Désactiver l'utilisateur
+        user.setIsActive(false);
         userRepository.save(user);
     }
 

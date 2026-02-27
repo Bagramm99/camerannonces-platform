@@ -1,4 +1,4 @@
-// src/screens/auth/LoginScreen.tsx
+// src/screens/auth/ForgotPasswordScreen.tsx
 import React, { useState } from 'react';
 import {
     View,
@@ -14,14 +14,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CountryPicker, { Country, CountryCode } from 'react-native-country-picker-modal';
-import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services/authService';
 
-const LoginScreen = ({ navigation }) => {
-    const { login } = useAuth();
-
+const ForgotPasswordScreen = ({ navigation }) => {
     const [formData, setFormData] = useState({
         telephone: '',
-        motDePasse: '',
+        nouveauMotDePasse: '',
+        confirmPassword: '',
     });
 
     const [countryCode, setCountryCode] = useState<CountryCode>('CM');
@@ -29,6 +28,7 @@ const LoginScreen = ({ navigation }) => {
     const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const onSelectCountry = (country: Country) => {
@@ -39,16 +39,23 @@ const LoginScreen = ({ navigation }) => {
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        // Validation téléphone (sans country code)
+        // Validation téléphone
         if (!formData.telephone) {
             newErrors.telephone = 'Le numéro de téléphone est requis';
         } else if (!/^[0-9]{9,15}$/.test(formData.telephone)) {
             newErrors.telephone = 'Numéro invalide (9-15 chiffres)';
         }
 
-        // Validation mot de passe
-        if (!formData.motDePasse) {
-            newErrors.motDePasse = 'Le mot de passe est requis';
+        // Validation nouveau mot de passe
+        if (!formData.nouveauMotDePasse) {
+            newErrors.nouveauMotDePasse = 'Le nouveau mot de passe est requis';
+        } else if (formData.nouveauMotDePasse.length < 6) {
+            newErrors.nouveauMotDePasse = 'Minimum 6 caractères requis';
+        }
+
+        // Confirmation mot de passe
+        if (formData.nouveauMotDePasse !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
         }
 
         setErrors(newErrors);
@@ -63,7 +70,7 @@ const LoginScreen = ({ navigation }) => {
         }
     };
 
-    const handleLogin = async () => {
+    const handleResetPassword = async () => {
         if (!validateForm()) {
             return;
         }
@@ -73,13 +80,26 @@ const LoginScreen = ({ navigation }) => {
             // Numéro complet mit Country Code
             const fullTelephone = callingCode.replace('+', '') + formData.telephone;
 
-            await login(fullTelephone, formData.motDePasse);
-            // AuthContext gère la navigation automatiquement
-        } catch (error: any) {
-            console.error('❌ Login error:', error);
+            const response = await authService.resetPassword(
+                fullTelephone,
+                formData.nouveauMotDePasse
+            );
+
             Alert.alert(
-                'Erreur de connexion',
-                error.message || 'Vérifiez vos identifiants et réessayez'
+                'Succès',
+                'Votre mot de passe a été réinitialisé avec succès !',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('Login')
+                    }
+                ]
+            );
+        } catch (error: any) {
+            console.error('❌ Reset password error:', error);
+            Alert.alert(
+                'Erreur',
+                error.message || 'Impossible de réinitialiser le mot de passe. Vérifiez votre numéro.'
             );
         } finally {
             setLoading(false);
@@ -94,19 +114,26 @@ const LoginScreen = ({ navigation }) => {
             <ScrollView
                 contentContainerStyle={styles.scrollContainer}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.logo}>🇨🇲</Text>
-                    <Text style={styles.title}>CamerAnnonces</Text>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Icon name="arrow-back" size={24} color="#0066CC" />
+                    </TouchableOpacity>
+                    <Icon name="lock-reset" size={80} color="#0066CC" />
+                    <Text style={styles.title}>Mot de passe oublié ?</Text>
                     <Text style={styles.subtitle}>
-                        Connectez-vous pour accéder à votre compte
+                        Réinitialisez votre mot de passe
                     </Text>
                 </View>
 
                 {/* Formulaire */}
                 <View style={styles.form}>
-                    {/* Numéro de téléphone avec Country Picker */}
+                    {/* Numéro de téléphone */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Numéro de téléphone</Text>
                         <View style={[
@@ -144,19 +171,19 @@ const LoginScreen = ({ navigation }) => {
                         )}
                     </View>
 
-                    {/* Mot de passe */}
+                    {/* Nouveau mot de passe */}
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Mot de passe</Text>
+                        <Text style={styles.label}>Nouveau mot de passe</Text>
                         <View style={[
                             styles.inputWrapper,
-                            errors.motDePasse && styles.inputError
+                            errors.nouveauMotDePasse && styles.inputError
                         ]}>
                             <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Votre mot de passe"
-                                value={formData.motDePasse}
-                                onChangeText={(text) => handleInputChange('motDePasse', text)}
+                                placeholder="Minimum 6 caractères"
+                                value={formData.nouveauMotDePasse}
+                                onChangeText={(text) => handleInputChange('nouveauMotDePasse', text)}
                                 secureTextEntry={!showPassword}
                                 autoCapitalize="none"
                             />
@@ -171,74 +198,66 @@ const LoginScreen = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
                         </View>
-                        {errors.motDePasse && (
-                            <Text style={styles.errorText}>{errors.motDePasse}</Text>
+                        {errors.nouveauMotDePasse && (
+                            <Text style={styles.errorText}>{errors.nouveauMotDePasse}</Text>
                         )}
                     </View>
 
-                    {/* Bouton de connexion */}
+                    {/* Confirmer mot de passe */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Confirmer le mot de passe</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            errors.confirmPassword && styles.inputError
+                        ]}>
+                            <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Retapez votre mot de passe"
+                                value={formData.confirmPassword}
+                                onChangeText={(text) => handleInputChange('confirmPassword', text)}
+                                secureTextEntry={!showConfirmPassword}
+                                autoCapitalize="none"
+                            />
+                            <TouchableOpacity
+                                style={styles.passwordToggle}
+                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                                <Icon
+                                    name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                                    size={20}
+                                    color="#666"
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        {errors.confirmPassword && (
+                            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                        )}
+                    </View>
+
+                    {/* Bouton de réinitialisation */}
                     <TouchableOpacity
-                        style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                        onPress={handleLogin}
+                        style={[styles.resetButton, loading && styles.resetButtonDisabled]}
+                        onPress={handleResetPassword}
                         disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator size="small" color="#fff" />
                         ) : (
                             <>
-                                <Icon name="login" size={20} color="#fff" />
-                                <Text style={styles.loginButtonText}>Se connecter</Text>
+                                <Icon name="check-circle" size={20} color="#fff" />
+                                <Text style={styles.resetButtonText}>Réinitialiser le mot de passe</Text>
                             </>
                         )}
                     </TouchableOpacity>
-
-                    {/* Mot de passe oublié */}
-                    <TouchableOpacity
-                        style={styles.forgotPassword}
-                        onPress={() => navigation.navigate('ForgotPassword')}
-                    >
-                        <Text style={styles.forgotPasswordText}>
-                            Mot de passe oublié ?
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
-                {/* Inscription */}
-                <View style={styles.registerSection}>
-                    <Text style={styles.registerText}>
-                        Vous n'avez pas encore de compte ?
+                {/* Info box */}
+                <View style={styles.infoBox}>
+                    <Icon name="info" size={20} color="#0066CC" />
+                    <Text style={styles.infoText}>
+                        Entrez votre numéro de téléphone et choisissez un nouveau mot de passe.
                     </Text>
-                    <TouchableOpacity
-                        style={styles.registerButton}
-                        onPress={() => navigation.navigate('Register')}
-                    >
-                        <Text style={styles.registerButtonText}>
-                            Créer un compte gratuitement
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Avantages */}
-                <View style={styles.benefitsSection}>
-                    <Text style={styles.benefitsTitle}>
-                        💡 Pourquoi créer un compte ?
-                    </Text>
-                    <View style={styles.benefitItem}>
-                        <Icon name="add-circle" size={16} color="#00C851" />
-                        <Text style={styles.benefitText}>Publier vos annonces gratuitement</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                        <Icon name="favorite" size={16} color="#00C851" />
-                        <Text style={styles.benefitText}>Sauvegarder vos annonces favorites</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                        <Icon name="notifications" size={16} color="#00C851" />
-                        <Text style={styles.benefitText}>Recevoir des alertes personnalisées</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                        <Icon name="verified" size={16} color="#00C851" />
-                        <Text style={styles.benefitText}>Profil vérifié et crédible</Text>
-                    </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -252,21 +271,22 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flexGrow: 1,
-        justifyContent: 'center',
         padding: 20,
     },
     header: {
         alignItems: 'center',
         marginBottom: 30,
     },
-    logo: {
-        fontSize: 60,
-        marginBottom: 10,
+    backButton: {
+        alignSelf: 'flex-start',
+        padding: 8,
+        marginBottom: 20,
     },
     title: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
-        color: '#0066CC',
+        color: '#333',
+        marginTop: 20,
         marginBottom: 5,
     },
     subtitle: {
@@ -345,76 +365,38 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 5,
     },
-    loginButton: {
+    resetButton: {
         backgroundColor: '#0066CC',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: 15,
         borderRadius: 10,
-        marginTop: 10,
+        marginTop: 20,
     },
-    loginButtonDisabled: {
+    resetButtonDisabled: {
         opacity: 0.7,
     },
-    loginButtonText: {
+    resetButtonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: '600',
         marginLeft: 8,
     },
-    forgotPassword: {
-        alignItems: 'center',
-        marginTop: 15,
-    },
-    forgotPasswordText: {
-        color: '#0066CC',
-        fontSize: 16,
-    },
-    registerSection: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    registerText: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 10,
-    },
-    registerButton: {
-        borderWidth: 2,
-        borderColor: '#0066CC',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 10,
-    },
-    registerButtonText: {
-        color: '#0066CC',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    benefitsSection: {
-        backgroundColor: '#f8f9fa',
-        padding: 20,
-        borderRadius: 10,
-        marginTop: 20,
-    },
-    benefitsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    benefitItem: {
+    infoBox: {
         flexDirection: 'row',
+        backgroundColor: '#e6f0ff',
+        padding: 15,
+        borderRadius: 10,
         alignItems: 'center',
-        marginBottom: 8,
     },
-    benefitText: {
-        marginLeft: 8,
+    infoText: {
+        flex: 1,
+        marginLeft: 10,
         fontSize: 14,
-        color: '#555',
+        color: '#333',
+        lineHeight: 20,
     },
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;

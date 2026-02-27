@@ -13,23 +13,32 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAuth } from '../../contexts/AuthContext';
+import CountryPicker, { Country, CountryCode } from 'react-native-country-picker-modal';
+import { authService } from '../../services/authService';
 
 const RegisterScreen = ({ navigation }) => {
-    const { register } = useAuth();
-
     const [formData, setFormData] = useState({
         nom: '',
         telephone: '',
+        email: '',
         motDePasse: '',
         confirmPassword: '',
         ville: '',
         quartier: '',
     });
+
+    const [countryCode, setCountryCode] = useState<CountryCode>('CM');
+    const [callingCode, setCallingCode] = useState('+237');
+    const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const onSelectCountry = (country: Country) => {
+        setCountryCode(country.cca2);
+        setCallingCode(`+${country.callingCode[0]}`);
+    };
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -41,18 +50,26 @@ const RegisterScreen = ({ navigation }) => {
             newErrors.nom = 'Le nom doit avoir au moins 2 caractères';
         }
 
-        // Validation téléphone
+        // Validation téléphone (sans country code)
         if (!formData.telephone) {
             newErrors.telephone = 'Le numéro de téléphone est requis';
-        } else if (!/^237[0-9]{9}$/.test(formData.telephone)) {
-            newErrors.telephone = 'Format: 237XXXXXXXXX (9 chiffres après 237)';
+        } else if (!/^[0-9]{9,15}$/.test(formData.telephone)) {
+            newErrors.telephone = 'Numéro invalide (9-15 chiffres)';
+        }
+
+        // Validation email (optionnel mais format si rempli)
+        if (formData.email && formData.email.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email.trim())) {
+                newErrors.email = 'Format email invalide';
+            }
         }
 
         // Validation mot de passe
         if (!formData.motDePasse) {
             newErrors.motDePasse = 'Le mot de passe est requis';
         } else if (formData.motDePasse.length < 6) {
-            newErrors.motDePasse = 'Le mot de passe doit avoir au moins 6 caractères';
+            newErrors.motDePasse = 'Minimum 6 caractères requis';
         }
 
         // Confirmation mot de passe
@@ -67,7 +84,6 @@ const RegisterScreen = ({ navigation }) => {
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
 
-        // Effacer l'erreur quand l'utilisateur commence à taper
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -80,30 +96,48 @@ const RegisterScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            await register(
+            // Numéro complet mit Country Code
+            const fullTelephone = callingCode.replace('+', '') + formData.telephone;
+
+            const response = await authService.registerWithEmail(
                 formData.nom.trim(),
-                formData.telephone,
+                fullTelephone,
+                formData.email.trim() || null,
                 formData.motDePasse,
+                callingCode,
                 formData.ville.trim() || undefined,
                 formData.quartier.trim() || undefined
             );
-            // AuthContext gère la navigation automatiquement
+
+            if (response.needsVerification && formData.email.trim()) {
+                // Email vorhanden → zur Verifizierung
+                Alert.alert(
+                    'Vérification requise',
+                    'Un code de vérification a été envoyé à votre email.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('VerifyCode', {
+                                telephone: fullTelephone,
+                                email: formData.email.trim(),
+                            })
+                        }
+                    ]
+                );
+            } else {
+                // Kein Email → direkt einloggen
+                Alert.alert('Succès', 'Compte créé avec succès !');
+                navigation.navigate('Login');
+            }
         } catch (error: any) {
             console.error('❌ Register error:', error);
             Alert.alert(
                 'Erreur d\'inscription',
-                error.message || 'Vérifiez vos informations et réessayez'
+                error.message || 'Vérifiez vos informations'
             );
         } finally {
             setLoading(false);
         }
-    };
-
-    const formatPhoneNumber = (text: string) => {
-        if (text.length > 0 && !text.startsWith('237')) {
-            return '237' + text.replace(/[^0-9]/g, '');
-        }
-        return text.replace(/[^0-9]/g, '');
     };
 
     return (
@@ -153,27 +187,70 @@ const RegisterScreen = ({ navigation }) => {
                         )}
                     </View>
 
-                    {/* Numéro de téléphone */}
+                    {/* Numéro de téléphone avec Country Picker */}
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Numéro de téléphone *</Text>
                         <View style={[
-                            styles.inputWrapper,
+                            styles.phoneInputWrapper,
                             errors.telephone && styles.inputError
                         ]}>
-                            <Icon name="phone" size={20} color="#666" style={styles.inputIcon} />
+                            <TouchableOpacity
+                                style={styles.countryPickerButton}
+                                onPress={() => setShowCountryPicker(true)}
+                            >
+                                <CountryPicker
+                                    countryCode={countryCode}
+                                    withFlag
+                                    withCallingCode
+                                    withFilter
+                                    withEmoji
+                                    onSelect={onSelectCountry}
+                                    visible={showCountryPicker}
+                                    onClose={() => setShowCountryPicker(false)}
+                                />
+                                <Text style={styles.callingCode}>{callingCode}</Text>
+                                <Icon name="arrow-drop-down" size={20} color="#666" />
+                            </TouchableOpacity>
                             <TextInput
-                                style={styles.input}
-                                placeholder="237698123456"
+                                style={styles.phoneInput}
+                                placeholder="698123456"
                                 value={formData.telephone}
-                                onChangeText={(text) => handleInputChange('telephone', formatPhoneNumber(text))}
+                                onChangeText={(text) => handleInputChange('telephone', text.replace(/[^0-9]/g, ''))}
                                 keyboardType="phone-pad"
-                                maxLength={12}
-                                autoCapitalize="none"
+                                maxLength={15}
                             />
                         </View>
                         {errors.telephone && (
                             <Text style={styles.errorText}>{errors.telephone}</Text>
                         )}
+                        <Text style={styles.hintText}>
+                            📱 Numéro utilisé pour les annonces
+                        </Text>
+                    </View>
+
+                    {/* Email (optionnel) */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Email (optionnel)</Text>
+                        <View style={[
+                            styles.inputWrapper,
+                            errors.email && styles.inputError
+                        ]}>
+                            <Icon name="email" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="exemple@email.com"
+                                value={formData.email}
+                                onChangeText={(text) => handleInputChange('email', text)}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                        </View>
+                        {errors.email && (
+                            <Text style={styles.errorText}>{errors.email}</Text>
+                        )}
+                        <Text style={styles.hintText}>
+                            ✉️ Pour récupérer votre compte si besoin
+                        </Text>
                     </View>
 
                     {/* Ville */}
@@ -364,6 +441,36 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         backgroundColor: '#f8f9fa',
     },
+    phoneInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 10,
+        backgroundColor: '#f8f9fa',
+    },
+    countryPickerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 15,
+        borderRightWidth: 1,
+        borderRightColor: '#ddd',
+    },
+    callingCode: {
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 8,
+        marginRight: 4,
+        fontWeight: '500',
+    },
+    phoneInput: {
+        flex: 1,
+        paddingHorizontal: 15,
+        paddingVertical: 15,
+        fontSize: 16,
+        color: '#333',
+    },
     inputError: {
         borderColor: '#ff4444',
     },
@@ -378,6 +485,12 @@ const styles = StyleSheet.create({
     },
     passwordToggle: {
         padding: 5,
+    },
+    hintText: {
+        fontSize: 12,
+        color: '#999',
+        marginTop: 5,
+        fontStyle: 'italic',
     },
     errorText: {
         color: '#ff4444',

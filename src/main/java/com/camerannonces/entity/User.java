@@ -66,6 +66,22 @@ public class User {
     @Column(name = "derniere_connexion")
     private LocalDateTime derniereConnexion;
 
+    // ✅ NOUVEAUX CHAMPS POUR VÉRIFICATION
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(name = "phone_verified", nullable = false)
+    private Boolean phoneVerified = false;
+
+    @Column(name = "country_code", length = 5, nullable = false)
+    private String countryCode = "+237";
+
+    @Column(name = "verification_code", length = 4)
+    private String verificationCode;
+
+    @Column(name = "verification_code_expiry")
+    private LocalDateTime verificationCodeExpiry;
+
     // Relations
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Listing> listings;
@@ -136,6 +152,22 @@ public class User {
 
     public LocalDateTime getDerniereConnexion() { return derniereConnexion; }
     public void setDerniereConnexion(LocalDateTime derniereConnexion) { this.derniereConnexion = derniereConnexion; }
+
+    // ✅ NEUE GETTERS/SETTERS
+    public Boolean getEmailVerified() { return emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public Boolean getPhoneVerified() { return phoneVerified; }
+    public void setPhoneVerified(Boolean phoneVerified) { this.phoneVerified = phoneVerified; }
+
+    public String getCountryCode() { return countryCode; }
+    public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
+
+    public String getVerificationCode() { return verificationCode; }
+    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
+
+    public LocalDateTime getVerificationCodeExpiry() { return verificationCodeExpiry; }
+    public void setVerificationCodeExpiry(LocalDateTime verificationCodeExpiry) { this.verificationCodeExpiry = verificationCodeExpiry; }
 
     public List<Listing> getListings() { return listings; }
     public void setListings(List<Listing> listings) { this.listings = listings; }
