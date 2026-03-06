@@ -13,7 +13,7 @@ import {
     Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { CountryPicker } from 'react-native-country-code-picker';
+import CountryPicker, { Country, CountryCode } from 'react-native-country-picker-modal';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
@@ -24,11 +24,17 @@ const LoginScreen = ({ navigation }) => {
         motDePasse: '',
     });
 
-    const [countryCode, setCountryCode] = useState('+237');
+    const [countryCode, setCountryCode] = useState<CountryCode>('CM');
+    const [callingCode, setCallingCode] = useState('+237');
     const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const onSelectCountry = (country: Country) => {
+        setCountryCode(country.cca2);
+        setCallingCode(`+${country.callingCode[0]}`);
+    };
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -65,7 +71,7 @@ const LoginScreen = ({ navigation }) => {
         setLoading(true);
         try {
             // Numéro complet mit Country Code
-            const fullTelephone = countryCode.replace('+', '') + formData.telephone;
+            const fullTelephone = callingCode.replace('+', '') + formData.telephone;
 
             await login(fullTelephone, formData.motDePasse);
             // AuthContext gère la navigation automatiquement
@@ -111,7 +117,17 @@ const LoginScreen = ({ navigation }) => {
                                 style={styles.countryPickerButton}
                                 onPress={() => setShowCountryPicker(true)}
                             >
-                                <Text style={styles.callingCode}>{countryCode}</Text>
+                                <CountryPicker
+                                    countryCode={countryCode}
+                                    withFlag
+                                    withCallingCode
+                                    withFilter
+                                    withEmoji
+                                    onSelect={onSelectCountry}
+                                    visible={showCountryPicker}
+                                    onClose={() => setShowCountryPicker(false)}
+                                />
+                                <Text style={styles.callingCode}>{callingCode}</Text>
                                 <Icon name="arrow-drop-down" size={20} color="#666" />
                             </TouchableOpacity>
                             <TextInput
@@ -224,21 +240,6 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.benefitText}>Profil vérifié et crédible</Text>
                     </View>
                 </View>
-
-                {/* Country Picker Modal */}
-                <CountryPicker
-                    show={showCountryPicker}
-                    pickerButtonOnPress={(item) => {
-                        setCountryCode(item.dial_code);
-                        setShowCountryPicker(false);
-                    }}
-                    lang={'fr'}
-                    style={{
-                        modal: {
-                            height: 500,
-                        },
-                    }}
-                />
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -313,6 +314,7 @@ const styles = StyleSheet.create({
     callingCode: {
         fontSize: 16,
         color: '#333',
+        marginLeft: 8,
         marginRight: 4,
         fontWeight: '500',
     },
