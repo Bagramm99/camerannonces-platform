@@ -14,28 +14,67 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authService } from '../../services/authService';
 
+// @ts-ignore
 const VerifyCodeScreen = ({ route, navigation }) => {
-    const { telephone, email } = route.params;
+    const { telephone, email, countryCode, verificationType } = route.params;
+
+    // ✅ Bestimme Verifizierungstyp (SMS oder Email)
+    const isSmsVerification = verificationType === 'sms';
 
     const [code, setCode] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
-    const [timer, setTimer] = useState(60);
+    const [sendingSms, setSendingSms] = useState(false);
+    const [timer, setTimer] = useState(240); // 4 Minuten für beide
     const [canResend, setCanResend] = useState(false);
 
     const inputRefs = useRef<Array<TextInput | null>>([]);
 
+    // ✅ Bei SMS: Automatisch Code senden beim Start
+    useEffect(() => {
+        if (isSmsVerification) {
+            sendInitialSms();
+        }
+    }, []);
+
+    const sendInitialSms = async () => {
+        setSendingSms(true);
+        try {
+            await authService.sendSmsVerification(telephone);
+            console.log('✅ SMS initial envoyé');
+        } catch (error: any) {
+            console.error('❌ SMS initial error:', error);
+            Alert.alert(
+                'Erreur SMS',
+                error.message || 'Impossible d\'envoyer le SMS',
+                [
+                    {
+                        text: 'Réessayer',
+                        onPress: sendInitialSms
+                    },
+                    {
+                        text: 'Annuler',
+                        onPress: () => navigation.goBack(),
+                        style: 'cancel'
+                    }
+                ]
+            );
+        } finally {
+            setSendingSms(false);
+        }
+    };
+
     // Timer für Resend
     useEffect(() => {
-        if (timer > 0) {
+        if (timer > 0 && !sendingSms) {
             const interval = setInterval(() => {
                 setTimer(prev => prev - 1);
             }, 1000);
             return () => clearInterval(interval);
-        } else {
+        } else if (timer === 0) {
             setCanResend(true);
         }
-    }, [timer]);
+    }, [timer, sendingSms]);
 
     const handleCodeChange = (text: string, index: number) => {
         // Nur Zahlen erlauben
@@ -88,18 +127,32 @@ const VerifyCodeScreen = ({ route, navigation }) => {
 
         setLoading(true);
         try {
-            await authService.verifyCode(telephone, fullCode);
-
-            Alert.alert(
-                'Vérification réussie !',
-                'Votre email a été vérifié avec succès.',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation.navigate('Login')
-                    }
-                ]
-            );
+            // ✅ Unterscheide zwischen SMS und Email Verifizierung
+            if (isSmsVerification) {
+                await authService.verifySms(telephone, fullCode);
+                Alert.alert(
+                    'Vérification réussie !',
+                    'Votre numéro de téléphone a été vérifié avec succès.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('Login')
+                        }
+                    ]
+                );
+            } else {
+                await authService.verifyCode(telephone, fullCode);
+                Alert.alert(
+                    'Vérification réussie !',
+                    'Votre email a été vérifié avec succès.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('Login')
+                        }
+                    ]
+                );
+            }
         } catch (error: any) {
             console.error('❌ Verify error:', error);
             Alert.alert('Erreur', error.message || 'Code invalide');
@@ -116,9 +169,15 @@ const VerifyCodeScreen = ({ route, navigation }) => {
 
         setResending(true);
         try {
-            await authService.resendCode(telephone);
-            Alert.alert('Code renvoyé', 'Un nouveau code a été envoyé à votre email');
-            setTimer(60);
+            // ✅ Unterscheide zwischen SMS und Email Resend
+            if (isSmsVerification) {
+                await authService.sendSmsVerification(telephone);
+                Alert.alert('SMS renvoyé', 'Un nouveau code SMS a été envoyé');
+            } else {
+                await authService.resendCode(telephone);
+                Alert.alert('Email renvoyé', 'Un nouveau code a été envoyé à votre email');
+            }
+            setTimer(240); // 4 Minuten
             setCanResend(false);
         } catch (error: any) {
             console.error('❌ Resend error:', error);
@@ -127,6 +186,23 @@ const VerifyCodeScreen = ({ route, navigation }) => {
             setResending(false);
         }
     };
+
+    // ✅ Format Timer (mm:ss)
+    const formatTimer = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // ✅ SMS wird gerade gesendet
+    if (sendingSms) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0066CC" />
+                <Text style={styles.loadingText}>Envoi du SMS...</Text>
+            </View>
+        );
+    }
 
     return (
         <KeyboardAvoidingView
@@ -143,12 +219,30 @@ const VerifyCodeScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
 
                 <View style={styles.header}>
-                    <Icon name="mail-outline" size={80} color="#0066CC" />
-                    <Text style={styles.title}>Vérification Email</Text>
-                    <Text style={styles.subtitle}>
-                        Nous avons envoyé un code à 4 chiffres à
+                    {/* ✅ Icon basierend auf Typ */}
+                    <Icon
+                        name={isSmsVerification ? "sms" : "mail-outline"}
+                        size={80}
+                        color="#0066CC"
+                    />
+                    {/* ✅ Title basierend auf Typ */}
+                    <Text style={styles.title}>
+                        {isSmsVerification ? 'Vérification SMS' : 'Vérification Email'}
                     </Text>
-                    <Text style={styles.email}>{email}</Text>
+                    {/* ✅ Subtitle basierend auf Typ */}
+                    <Text style={styles.subtitle}>
+                        {isSmsVerification
+                            ? 'Nous avons envoyé un code à 4 chiffres au'
+                            : 'Nous avons envoyé un code à 4 chiffres à'}
+                    </Text>
+                    <Text style={styles.contactInfo}>
+                        {isSmsVerification
+                            ? `${countryCode} ${telephone.slice(-9)}`
+                            : email}
+                    </Text>
+                    <Text style={styles.expiryText}>
+                        ⏱️ Code valable pendant 4 minutes
+                    </Text>
                 </View>
 
                 {/* Code Input */}
@@ -193,7 +287,9 @@ const VerifyCodeScreen = ({ route, navigation }) => {
                 {/* Resend Section */}
                 <View style={styles.resendSection}>
                     <Text style={styles.resendText}>
-                        Vous n'avez pas reçu le code ?
+                        {isSmsVerification
+                            ? 'Vous n\'avez pas reçu le SMS ?'
+                            : 'Vous n\'avez pas reçu l\'email ?'}
                     </Text>
                     {canResend ? (
                         <TouchableOpacity
@@ -209,7 +305,7 @@ const VerifyCodeScreen = ({ route, navigation }) => {
                         </TouchableOpacity>
                     ) : (
                         <Text style={styles.timerText}>
-                            Renvoyer dans {timer}s
+                            Renvoyer dans {formatTimer(timer)}
                         </Text>
                     )}
                 </View>
@@ -232,6 +328,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    loadingText: {
+        marginTop: 20,
+        fontSize: 16,
+        color: '#666',
     },
     content: {
         flex: 1,
@@ -259,10 +366,16 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 5,
     },
-    email: {
+    contactInfo: {
         fontSize: 16,
         color: '#0066CC',
         fontWeight: '600',
+        marginBottom: 10,
+    },
+    expiryText: {
+        fontSize: 14,
+        color: '#FF9800',
+        fontStyle: 'italic',
     },
     codeContainer: {
         flexDirection: 'row',

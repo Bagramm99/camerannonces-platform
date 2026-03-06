@@ -35,9 +35,17 @@ const RegisterScreen = ({ navigation }) => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // ✅ Check if country is Cameroon
+    const isCameroon = callingCode === '+237';
+
     const onSelectCountry = (country: Country) => {
         setCountryCode(country.cca2);
         setCallingCode(`+${country.callingCode[0]}`);
+
+        // Clear email error when switching countries
+        if (errors.email) {
+            setErrors(prev => ({ ...prev, email: '' }));
+        }
     };
 
     const validateForm = () => {
@@ -50,18 +58,31 @@ const RegisterScreen = ({ navigation }) => {
             newErrors.nom = 'Le nom doit avoir au moins 2 caractères';
         }
 
-        // Validation téléphone (sans country code)
+        // Validation téléphone
         if (!formData.telephone) {
             newErrors.telephone = 'Le numéro de téléphone est requis';
         } else if (!/^[0-9]{9,15}$/.test(formData.telephone)) {
             newErrors.telephone = 'Numéro invalide (9-15 chiffres)';
         }
 
-        // Validation email (optionnel mais format si rempli)
-        if (formData.email && formData.email.trim()) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email.trim())) {
-                newErrors.email = 'Format email invalide';
+        // ✅ Validation email - REQUIRED si pas Cameroun
+        if (!isCameroon) {
+            // Email OBLIGATOIRE pour les autres pays
+            if (!formData.email || !formData.email.trim()) {
+                newErrors.email = 'L\'email est obligatoire pour les numéros internationaux';
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email.trim())) {
+                    newErrors.email = 'Format email invalide';
+                }
+            }
+        } else {
+            // Email OPTIONNEL pour Cameroun, mais format valide si rempli
+            if (formData.email && formData.email.trim()) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(formData.email.trim())) {
+                    newErrors.email = 'Format email invalide';
+                }
             }
         }
 
@@ -96,23 +117,41 @@ const RegisterScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            // Numéro complet mit Country Code
+            // Numéro complet avec Country Code
             const fullTelephone = callingCode.replace('+', '') + formData.telephone;
+            const hasEmail = formData.email && formData.email.trim();
 
             const response = await authService.registerWithEmail(
                 formData.nom.trim(),
                 fullTelephone,
-                formData.email.trim() || null,
+                hasEmail ? formData.email.trim() : null,
                 formData.motDePasse,
                 callingCode,
                 formData.ville.trim() || undefined,
                 formData.quartier.trim() || undefined
             );
 
-            if (response.needsVerification && formData.email.trim()) {
-                // Email vorhanden → zur Verifizierung
+            // ✅ LOGIQUE DE VÉRIFICATION
+            if (isCameroon && !hasEmail) {
+                // Cameroun + PAS d'email → SMS Vérification
                 Alert.alert(
-                    'Vérification requise',
+                    'Vérification SMS',
+                    'Un code de vérification va être envoyé par SMS.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('VerifyCode', {
+                                telephone: fullTelephone,
+                                countryCode: callingCode,
+                                verificationType: 'sms',
+                            })
+                        }
+                    ]
+                );
+            } else if (hasEmail) {
+                // Email fourni → Email Vérification
+                Alert.alert(
+                    'Vérification email',
                     'Un code de vérification a été envoyé à votre email.',
                     [
                         {
@@ -120,12 +159,14 @@ const RegisterScreen = ({ navigation }) => {
                             onPress: () => navigation.navigate('VerifyCode', {
                                 telephone: fullTelephone,
                                 email: formData.email.trim(),
+                                countryCode: callingCode,
+                                verificationType: 'email',
                             })
                         }
                     ]
                 );
             } else {
-                // Kein Email → direkt einloggen
+                // Pas de vérification nécessaire
                 Alert.alert('Succès', 'Compte créé avec succès !');
                 navigation.navigate('Login');
             }
@@ -228,9 +269,11 @@ const RegisterScreen = ({ navigation }) => {
                         </Text>
                     </View>
 
-                    {/* Email (optionnel) */}
+                    {/* ✅ Email - CONDITIONAL */}
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Email (optionnel)</Text>
+                        <Text style={styles.label}>
+                            Email {isCameroon ? '(optionnel)' : '*'}
+                        </Text>
                         <View style={[
                             styles.inputWrapper,
                             errors.email && styles.inputError
@@ -249,7 +292,9 @@ const RegisterScreen = ({ navigation }) => {
                             <Text style={styles.errorText}>{errors.email}</Text>
                         )}
                         <Text style={styles.hintText}>
-                            ✉️ Pour récupérer votre compte si besoin
+                            {isCameroon
+                                ? '📧 Vérification par SMS ou email (votre choix)'
+                                : '📧 Obligatoire pour vérification (numéro international)'}
                         </Text>
                     </View>
 

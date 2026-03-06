@@ -12,6 +12,7 @@ interface AuthResponse {
         expiresIn: number;
     };
     needsVerification?: boolean;
+    expiresIn?: number;
 }
 
 class AuthService {
@@ -30,7 +31,7 @@ class AuthService {
             );
         }
     }
-    //ResetPassword
+
     async resetPassword(telephone: string, nouveauMotDePasse: string): Promise<AuthResponse> {
         try {
             const response = await api.post('/auth/reset-password', {
@@ -102,7 +103,7 @@ class AuthService {
         }
     }
 
-    // ✅ NOUVEAU: Vérifier le code
+    // ✅ Vérifier le code EMAIL
     async verifyCode(telephone: string, code: string): Promise<AuthResponse> {
         try {
             const response = await api.post('/auth/verify-code', {
@@ -119,7 +120,7 @@ class AuthService {
         }
     }
 
-    // ✅ NOUVEAU: Renvoyer le code
+    // ✅ Renvoyer le code EMAIL
     async resendCode(telephone: string): Promise<AuthResponse> {
         try {
             const response = await api.post('/auth/resend-code', {
@@ -135,6 +136,39 @@ class AuthService {
         }
     }
 
+    // ✅ NOUVEAU: Envoyer code SMS (Africa's Talking)
+    async sendSmsVerification(telephone: string): Promise<AuthResponse> {
+        try {
+            const response = await api.post('/auth/send-sms-verification', {
+                telephone,
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error('❌ Send SMS error:', error.response?.data);
+            throw new Error(
+                error.response?.data?.message || 'Erreur lors de l\'envoi du SMS'
+            );
+        }
+    }
+
+    // ✅ NOUVEAU: Vérifier code SMS
+    async verifySms(telephone: string, code: string): Promise<AuthResponse> {
+        try {
+            const response = await api.post('/auth/verify-sms', {
+                telephone,
+                code,
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error('❌ Verify SMS error:', error.response?.data);
+            throw new Error(
+                error.response?.data?.message || 'Code SMS invalide'
+            );
+        }
+    }
+
     async checkPhoneAvailability(telephone: string): Promise<boolean> {
         try {
             const response = await api.get(`/auth/check-phone?telephone=${telephone}`);
@@ -144,7 +178,7 @@ class AuthService {
         }
     }
 
-    // ✅ NOUVEAU: Vérifier disponibilité email
+    // ✅ Vérifier disponibilité email
     async checkEmailAvailability(email: string): Promise<boolean> {
         try {
             const response = await api.get(`/auth/check-email?email=${email}`);
@@ -154,7 +188,5 @@ class AuthService {
         }
     }
 }
-
-
 
 export const authService = new AuthService();
