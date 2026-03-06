@@ -10,11 +10,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * Service d'authentification avec intégration JWT
+ * Service d'authentification avec intégration JWT et SMS
  * Localisation: src/main/java/com/camerannonces/service/AuthService.java
  */
 @Service
@@ -32,6 +33,9 @@ public class AuthService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private AfricasTalkingSmsService smsService;
 
     /**
      * Inscription d'un nouvel utilisateur avec JWT (ancienne méthode - téléphone uniquement)
@@ -111,16 +115,18 @@ public class AuthService {
         user.setPhoneVerified(false);
         user.setAnnoncesPublieesCeMois(0);
 
-        // Générer code de vérification
-        String code = emailService.generateVerificationCode();
-        user.setVerificationCode(code);
-        user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10));
-
-        user = userRepository.save(user);
-
-        // Envoyer email de vérification
+        // Générer code de vérification EMAIL (si email fourni)
         if (email != null && !email.trim().isEmpty()) {
+            String code = emailService.generateVerificationCode();
+            user.setEmailVerificationCode(code);
+            user.setEmailVerificationExpiry(LocalDateTime.now().plusMinutes(4));
+
+            user = userRepository.save(user);
+
+            // Envoyer email
             emailService.sendVerificationEmail(email, code);
+        } else {
+            user = userRepository.save(user);
         }
 
         // Créer tokens (l'utilisateur peut se connecter même sans vérification)
@@ -128,54 +134,105 @@ public class AuthService {
     }
 
     /**
-     * ✅ NOUVELLE: Vérifier le code (email ou SMS)
+     * ✅ NOUVELLE: Envoyer code de vérification SMS (Africa's Talking)
+     */
+    public void sendSmsVerification(String telephone) {
+        User user = userRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Générer code 4 chiffres
+        String code = smsService.generateVerificationCode();
+
+        // Sauvegarder code et expiration
+        user.setPhoneVerificationCode(code);
+        user.setPhoneVerificationExpiry(LocalDateTime.now().plusMinutes(4)); // 4 minutes
+        userRepository.save(user);
+
+        // Envoyer SMS via Africa's Talking
+        try {
+            smsService.sendVerificationSms(telephone, code);
+            System.out.println("✅ SMS envoyé à " + telephone + " avec code: " + code);
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de l'envoi du SMS: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✅ NOUVELLE: Vérifier code SMS
+     */
+    public void verifySms(String telephone, String code) {
+        User user = userRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        // Vérifier si code existe
+        if (user.getPhoneVerificationCode() == null || user.getPhoneVerificationCode().isEmpty()) {
+            throw new RuntimeException("Aucun code de vérification SMS actif");
+        }
+
+        // Vérifier si code correspond
+        if (!user.getPhoneVerificationCode().equals(code)) {
+            throw new RuntimeException("Code SMS invalide");
+        }
+
+        // Vérifier si code est expiré
+        if (user.getPhoneVerificationExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Code SMS expiré. Demandez un nouveau code.");
+        }
+
+        // Marquer téléphone comme vérifié
+        user.setPhoneVerified(true);
+        user.setPhoneVerificationCode(null);
+        user.setPhoneVerificationExpiry(null);
+
+        userRepository.save(user);
+        System.out.println("✅ Téléphone vérifié: " + telephone);
+    }
+
+    /**
+     * ✅ NOUVELLE: Vérifier le code EMAIL (ancienne méthode conservée)
      */
     public void verifyCode(String telephone, String code) {
         User user = userRepository.findByTelephone(telephone)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        // Vérifier si code est valide
-        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code)) {
+        // Vérifier code EMAIL
+        if (user.getEmailVerificationCode() == null || !user.getEmailVerificationCode().equals(code)) {
             throw new RuntimeException("Code de vérification invalide");
         }
 
         // Vérifier si code est expiré
-        if (user.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
+        if (user.getEmailVerificationExpiry().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Code de vérification expiré");
         }
 
-        // Marquer comme vérifié
-        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-            user.setEmailVerified(true);
-        } else {
-            user.setPhoneVerified(true);
-        }
-
-        // Supprimer le code
-        user.setVerificationCode(null);
-        user.setVerificationCodeExpiry(null);
+        // Marquer email comme vérifié
+        user.setEmailVerified(true);
+        user.setEmailVerificationCode(null);
+        user.setEmailVerificationExpiry(null);
 
         userRepository.save(user);
     }
 
     /**
-     * ✅ NOUVELLE: Renvoyer le code de vérification
+     * ✅ NOUVELLE: Renvoyer le code de vérification EMAIL
      */
     public void resendVerificationCode(String telephone) {
         User user = userRepository.findByTelephone(telephone)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
+            throw new RuntimeException("Aucun email associé à ce compte");
+        }
+
         // Générer nouveau code
         String code = emailService.generateVerificationCode();
-        user.setVerificationCode(code);
-        user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10));
+        user.setEmailVerificationCode(code);
+        user.setEmailVerificationExpiry(LocalDateTime.now().plusMinutes(4));
 
         userRepository.save(user);
 
         // Renvoyer email
-        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-            emailService.sendVerificationEmail(user.getEmail(), code);
-        }
+        emailService.sendVerificationEmail(user.getEmail(), code);
     }
 
     /**

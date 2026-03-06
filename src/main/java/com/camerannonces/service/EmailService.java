@@ -20,17 +20,11 @@ public class EmailService {
      * Pour l'instant: juste logger le code (pas d'email réel)
      */
     public void sendVerificationEmail(String email, String code) {
-        // TODO: Intégrer un vrai service d'email (SendGrid, Mailgun, AWS SES)
-
         // Pour l'instant: juste logger
         System.out.println("========================================");
         System.out.println("📧 EMAIL DE VÉRIFICATION");
         System.out.println("Destinataire: " + email);
         System.out.println("Code: " + code);
         System.out.println("========================================");
-
-        // Exemple avec System email (ne marche pas en production!)
-        // Dans le vrai, tu utiliseras SendGrid API:
-        // sendGridClient.send(email, "Votre code: " + code);
     }
 }

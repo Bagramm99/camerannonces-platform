@@ -22,6 +22,14 @@
         <java.version>17</java.version>
     </properties>
 
+    <!-- Africa's Talking Repository -->
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- Spring Boot Starters -->
         <dependency>
@@ -81,6 +89,13 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Africa's Talking SMS -->
+        <dependency>
+            <groupId>com.github.AfricasTalkingLtd</groupId>
+            <artifactId>africastalking-java</artifactId>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
         <!-- Testing -->

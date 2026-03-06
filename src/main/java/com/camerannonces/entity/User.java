@@ -66,7 +66,7 @@ public class User {
     @Column(name = "derniere_connexion")
     private LocalDateTime derniereConnexion;
 
-    // ✅ NOUVEAUX CHAMPS POUR VÉRIFICATION
+    // ✅ VERIFICATION FIELDS
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
@@ -76,10 +76,27 @@ public class User {
     @Column(name = "country_code", length = 5, nullable = false)
     private String countryCode = "+237";
 
+    // EMAIL VERIFICATION (SendGrid)
+    @Column(name = "email_verification_code", length = 4)
+    private String emailVerificationCode;
+
+    @Column(name = "email_verification_expiry")
+    private LocalDateTime emailVerificationExpiry;
+
+    // ✅ SMS VERIFICATION (Africa's Talking) - NEU!
+    @Column(name = "phone_verification_code", length = 4)
+    private String phoneVerificationCode;
+
+    @Column(name = "phone_verification_expiry")
+    private LocalDateTime phoneVerificationExpiry;
+
+    // OLD FIELD (deprecated - wird durch email_verification_code ersetzt)
     @Column(name = "verification_code", length = 4)
+    @Deprecated
     private String verificationCode;
 
     @Column(name = "verification_code_expiry")
+    @Deprecated
     private LocalDateTime verificationCodeExpiry;
 
     // Relations
@@ -153,7 +170,7 @@ public class User {
     public LocalDateTime getDerniereConnexion() { return derniereConnexion; }
     public void setDerniereConnexion(LocalDateTime derniereConnexion) { this.derniereConnexion = derniereConnexion; }
 
-    // ✅ NEUE GETTERS/SETTERS
+    // VERIFICATION GETTERS/SETTERS
     public Boolean getEmailVerified() { return emailVerified; }
     public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 
@@ -163,10 +180,29 @@ public class User {
     public String getCountryCode() { return countryCode; }
     public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
 
+    // EMAIL VERIFICATION
+    public String getEmailVerificationCode() { return emailVerificationCode; }
+    public void setEmailVerificationCode(String emailVerificationCode) { this.emailVerificationCode = emailVerificationCode; }
+
+    public LocalDateTime getEmailVerificationExpiry() { return emailVerificationExpiry; }
+    public void setEmailVerificationExpiry(LocalDateTime emailVerificationExpiry) { this.emailVerificationExpiry = emailVerificationExpiry; }
+
+    // ✅ SMS VERIFICATION - NEU!
+    public String getPhoneVerificationCode() { return phoneVerificationCode; }
+    public void setPhoneVerificationCode(String phoneVerificationCode) { this.phoneVerificationCode = phoneVerificationCode; }
+
+    public LocalDateTime getPhoneVerificationExpiry() { return phoneVerificationExpiry; }
+    public void setPhoneVerificationExpiry(LocalDateTime phoneVerificationExpiry) { this.phoneVerificationExpiry = phoneVerificationExpiry; }
+
+    // DEPRECATED (für Rückwärtskompatibilität)
+    @Deprecated
     public String getVerificationCode() { return verificationCode; }
+    @Deprecated
     public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
 
+    @Deprecated
     public LocalDateTime getVerificationCodeExpiry() { return verificationCodeExpiry; }
+    @Deprecated
     public void setVerificationCodeExpiry(LocalDateTime verificationCodeExpiry) { this.verificationCodeExpiry = verificationCodeExpiry; }
 
     public List<Listing> getListings() { return listings; }

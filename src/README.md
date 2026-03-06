@@ -398,3 +398,7 @@ Fait avec ❤️ pour le Cameroun 🇨🇲
 **Backend · Port 8082 | Frontend · Port 5173 | Mobile · Expo Go**
 
 </div>
+
+API Key Afrika's talking
+
+atsk_638e6e53b75a48bb3bde5b6b9bddaea70e0a5ed005a0d57418b32cf4f0f596af59b9e44a

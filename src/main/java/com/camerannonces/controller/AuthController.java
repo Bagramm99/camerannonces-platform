@@ -186,6 +186,64 @@ public class AuthController {
     }
 
     /**
+     * ✅ NOUVEAU: Envoyer code SMS (Africa's Talking)
+     * POST /api/auth/send-sms-verification
+     */
+    @PostMapping("/send-sms-verification")
+    public ResponseEntity<?> sendSmsVerification(@RequestBody Map<String, String> request) {
+        try {
+            String telephone = request.get("telephone");
+
+            if (telephone == null || telephone.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Téléphone obligatoire"));
+            }
+
+            authService.sendSmsVerification(telephone.trim());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Code SMS envoyé avec succès");
+            response.put("expiresIn", 240); // 4 minutes
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * ✅ NOUVEAU: Vérifier code SMS
+     * POST /api/auth/verify-sms
+     */
+    @PostMapping("/verify-sms")
+    public ResponseEntity<?> verifySms(@RequestBody Map<String, String> request) {
+        try {
+            String telephone = request.get("telephone");
+            String code = request.get("code");
+
+            if (telephone == null || code == null) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Téléphone et code obligatoires"));
+            }
+
+            authService.verifySms(telephone.trim(), code.trim());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "SMS vérifié avec succès");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
      * Connexion d'un utilisateur
      * POST /api/auth/login
      */
@@ -318,9 +376,6 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         try {
-            // Pour l'instant, la déconnexion est gérée côté client
-            // En production, on pourrait ajouter une blacklist des tokens
-
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Déconnexion réussie");
