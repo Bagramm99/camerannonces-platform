@@ -349,7 +349,7 @@ public class ListingController {
         response.put("isUrgent", listing.getIsUrgent());
         System.out.println("🔍 DEBUG Listing ID: " + listing.getId());
 
-        // ✅ DIESE ZEILEN MÜSSEN DA SEIN!
+        // ✅ DIESE ZEILEN MÜSSEN DA SEIN
         ListingImage mainImage = listingImageRepository
                 .findByListingIdAndIsPrincipaleTrue(listing.getId())
                 .orElse(null);
