@@ -21,14 +21,20 @@ interface ListingCardProps {
         titre: string;
         description: string;
         prix?: number;
-        prix_negociable: boolean;
-        etat_produit: string;
+        prixNegociable?: boolean;
+        prix_negociable?: boolean;
+        etatProduit?: string;
+        etat_produit?: string;
         ville?: string;
         quartier?: string;
-        date_creation: string;
-        is_premium: boolean;
-        is_urgent: boolean;
+        dateCreation?: string;
+        date_creation?: string;
+        isPremium?: boolean;
+        is_premium?: boolean;
+        isUrgent?: boolean;
+        is_urgent?: boolean;
         vues: number;
+        mainImageUrl?: string; // ✅ NEUE Property vom Backend
         images?: ListingImage[];
         category?: {
             emoji: string;
@@ -38,11 +44,30 @@ interface ListingCardProps {
     onPress: () => void;
 }
 
-// ✅ Komponentenfunktion ÖFFNET hier
 const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
 
-    // ✅ mainImage ist INNERHALB der Funktion
-    const mainImage = listing.images?.find((img: ListingImage) => img.is_principale) ?? listing.images?.[0];
+    // ✅ NEUE Logik: mainImageUrl oder images nutzen
+    const getMainImageUrl = (): string | undefined => {
+        // 1. Zuerst mainImageUrl vom Backend nutzen (für Listen)
+        if (listing.mainImageUrl) {
+            return listing.mainImageUrl;
+        }
+        // 2. Fallback: images array nutzen (für Detail-Views)
+        if (listing.images && listing.images.length > 0) {
+            const mainImage = listing.images.find(img => img.is_principale);
+            return mainImage ? mainImage.url : listing.images[0].url;
+        }
+        return undefined;
+    };
+
+    const mainImageUrl = getMainImageUrl();
+
+    // ✅ Kompatibilität für beide Namenskonventionen
+    const prixNegociable = listing.prixNegociable ?? listing.prix_negociable ?? false;
+    const etatProduit = listing.etatProduit ?? listing.etat_produit ?? 'BON';
+    const dateCreation = listing.dateCreation ?? listing.date_creation ?? '';
+    const isPremium = listing.isPremium ?? listing.is_premium ?? false;
+    const isUrgent = listing.isUrgent ?? listing.is_urgent ?? false;
 
     const getConditionColor = (condition: string): string => {
         switch (condition) {
@@ -68,18 +93,18 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
 
     return (
         <TouchableOpacity
-            style={[styles.card, listing.is_premium && styles.premiumCard]}
+            style={[styles.card, isPremium && styles.premiumCard]}
             onPress={onPress}
             activeOpacity={0.7}
         >
             <View style={styles.badgesContainer}>
-                {listing.is_premium && (
+                {isPremium && (
                     <View style={styles.premiumBadge}>
                         <Icon name="star" size={12} color="#FFD700" />
                         <Text style={styles.premiumText}>PREMIUM</Text>
                     </View>
                 )}
-                {listing.is_urgent && (
+                {isUrgent && (
                     <View style={styles.urgentBadge}>
                         <Icon name="flash-on" size={12} color="#fff" />
                         <Text style={styles.urgentText}>URGENT</Text>
@@ -89,9 +114,9 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
 
             <View style={styles.content}>
                 <View style={styles.imageContainer}>
-                    {mainImage ? (
+                    {mainImageUrl ? (
                         <Image
-                            source={{ uri: mainImage.url }}
+                            source={{ uri: mainImageUrl }}
                             style={styles.image}
                             resizeMode="cover"
                         />
@@ -123,7 +148,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                                 <Text style={styles.price}>
                                     {formatPrice(listing.prix)} FCFA
                                 </Text>
-                                {listing.prix_negociable && (
+                                {prixNegociable && (
                                     <Text style={styles.negotiable}>Négociable</Text>
                                 )}
                             </>
@@ -136,10 +161,10 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                         <View style={styles.conditionContainer}>
                             <View style={[
                                 styles.conditionDot,
-                                { backgroundColor: getConditionColor(listing.etat_produit) }
+                                { backgroundColor: getConditionColor(etatProduit) }
                             ]} />
                             <Text style={styles.conditionText}>
-                                {getConditionText(listing.etat_produit)}
+                                {getConditionText(etatProduit)}
                             </Text>
                         </View>
                         {(listing.ville || listing.quartier) && (
@@ -158,14 +183,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) => {
                             <Text style={styles.statsText}>{listing.vues}</Text>
                         </View>
                         <Text style={styles.dateText}>
-                            {formatDate(listing.date_creation)}
+                            {formatDate(dateCreation)}
                         </Text>
                     </View>
                 </View>
             </View>
         </TouchableOpacity>
     );
-// ✅ Komponentenfunktion SCHLIESST hier
 };
 
 const styles = StyleSheet.create({

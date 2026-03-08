@@ -34,14 +34,20 @@ const normalizeListing = (data: any): Listing => ({
     is_urgent: data.isUrgent ?? data.is_urgent ?? false,
     vues: data.vues ?? 0,
     statut: data.statut ?? 'ACTIVE',
-    images: data.images ?? [],
+    // ✅ NEUE LOGIK: mainImageUrl in images array konvertieren
+    images: data.images ?? (data.mainImageUrl ? [{
+        id: 0,
+        url: data.mainImageUrl,
+        is_principale: true
+    }] : []),
     category: data.category ?? null,
 });
 
 class ListingService {
     async getRecentListings(limit: number = 10): Promise<Listing[]> {
         try {
-            const response = await api.get(`/listings?limit=${limit}&sort=date`);
+            // ✅ GEÄNDERT: size statt limit, page=0
+            const response = await api.get(`/listings?page=0&size=${limit}`);
             const raw = response.data.listings || response.data.content || response.data;
             return Array.isArray(raw) ? raw.map(normalizeListing) : [];
         } catch (error) {

@@ -38,6 +38,10 @@ const HomeScreen = ({ navigation }) => {
 
             setCategories(categoriesData);
             setRecentListings(listingsData);
+
+    // ✅ DEBUG: Was kommt vom Backend?
+            console.log('📋 Listings Data:', JSON.stringify(listingsData, null, 2));
+            console.log('🖼️ First listing mainImageUrl:', listingsData[0]?.mainImageUrl);
         } catch (error) {
             Alert.alert('Erreur', 'Impossible de charger les données');
             console.error('Error loading data:', error);

@@ -337,12 +337,46 @@ public class ListingController {
         Map<String, Object> response = new HashMap<>();
         response.put("id", listing.getId());
         response.put("titre", listing.getTitre());
+        response.put("description", listing.getDescription());
         response.put("prix", listing.getPrix());
+        response.put("prixNegociable", listing.getPrixNegociable());
+        response.put("etatProduit", listing.getEtatProduit());
         response.put("ville", listing.getVille());
+        response.put("quartier", listing.getQuartier());
         response.put("dateCreation", listing.getDateCreation());
         response.put("vues", listing.getVues());
         response.put("isPremium", listing.getIsPremium());
         response.put("isUrgent", listing.getIsUrgent());
+        System.out.println("🔍 DEBUG Listing ID: " + listing.getId());
+
+        // ✅ DIESE ZEILEN MÜSSEN DA SEIN!
+        ListingImage mainImage = listingImageRepository
+                .findByListingIdAndIsPrincipaleTrue(listing.getId())
+                .orElse(null);
+
+        if (mainImage != null) {
+            response.put("mainImageUrl", mainImage.getUrl());
+            System.out.println("✅ MainImage URL: " + mainImage.getUrl());
+        } else {
+            List<ListingImage> images = listingImageRepository
+                    .findByListingIdOrderByOrdreAffichage(listing.getId());
+            if (!images.isEmpty()) {
+                response.put("mainImageUrl", images.get(0).getUrl());
+                System.out.println("✅ First Image URL: " + images.get(0).getUrl());
+            } else {
+                System.out.println("❌ No images found for listing " + listing.getId());
+            }
+        }
+
+        // Category Info
+        if (listing.getCategory() != null) {
+            Map<String, Object> categoryInfo = new HashMap<>();
+            categoryInfo.put("id", listing.getCategory().getId());
+            categoryInfo.put("nom", listing.getCategory().getNom());
+            categoryInfo.put("emoji", listing.getCategory().getEmoji());
+            response.put("category", categoryInfo);
+        }
+
         return response;
     }
 
