@@ -402,3 +402,22 @@ Fait avec ❤️ pour le Cameroun 🇨🇲
 API Key Afrika's talking
 
 atsk_638e6e53b75a48bb3bde5b6b9bddaea70e0a5ed005a0d57418b32cf4f0f596af59b9e44a
+
+-----------------------------------------
+📊 Vergleich für eine Anzeigen-App
+System	Free Speicher	ca. Bilder	Preis später
+Cloudinary	25 GB	~25 000	teuer
+Amazon S3	5 GB	~5000	günstig
+Cloudflare R2	10 GB	~10 000	sehr günstig
+Backblaze B2	10 GB	~10 000	extrem günstig
+
+Password Blackblaze B2 ist : Ngnimpea@199999
+
+keyID:
+0030c12d9a509db0000000001
+keyName:
+camerannonces-backend
+applicationKey:
+K003w+ftRa9XZ11XIlvpbG0lGN6tRaI
+
+-------------------------------------------------

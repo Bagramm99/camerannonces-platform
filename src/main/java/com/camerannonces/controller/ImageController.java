@@ -1,22 +1,22 @@
 package com.camerannonces.controller;
 
 import com.camerannonces.entity.ListingImage;
+import com.camerannonces.entity.User;
+import com.camerannonces.service.AuthService;
 import com.camerannonces.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur pour la gestion des images
+ * Storage: Backblaze B2 Cloud Storage
+ */
 @RestController
 @RequestMapping("/api/images")
 @CrossOrigin(origins = "*")
@@ -25,26 +25,114 @@ public class ImageController {
     @Autowired
     private ImageService imageService;
 
-    // Dossier de stockage (même que dans ImageService)
-    private final String uploadDir = "uploads/images/";
+    @Autowired
+    private AuthService authService;
+
+    // ============================================
+    // PROFILE IMAGES
+    // ============================================
 
     /**
-     * Uploader une image pour une annonce
-     * POST /api/images/upload/{listingId}
+     * Upload image de profil
+     * POST /api/images/profile
      */
-    @PostMapping("/upload/{listingId}")
-    public ResponseEntity<?> uploadImage(@PathVariable Long listingId,
-                                         @RequestParam("file") MultipartFile file,
-                                         @RequestParam(value = "isPrincipale", defaultValue = "false") boolean isPrincipale,
-                                         @RequestHeader("User-ID") Long userId) {
+    @PostMapping("/profile")
+    public ResponseEntity<?> uploadProfileImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String authHeader) {
         try {
-            // Validation de base
+            // Extraire userId du token
+            User user = getUserFromToken(authHeader);
+
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(createErrorResponse("Aucun fichier sélectionné"));
             }
 
-            ListingImage image = imageService.saveImage(listingId, file, isPrincipale);
+            String imageUrl = imageService.uploadProfileImage(user.getId(), file);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Photo de profil mise à jour");
+            response.put("imageUrl", imageUrl);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Supprimer image de profil
+     * DELETE /api/images/profile
+     */
+    @DeleteMapping("/profile")
+    public ResponseEntity<?> deleteProfileImage(@RequestHeader("Authorization") String authHeader) {
+        try {
+            User user = getUserFromToken(authHeader);
+            imageService.deleteProfileImage(user.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Photo de profil supprimée");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Obtenir l'URL de l'image de profil
+     * GET /api/images/profile
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfileImage(@RequestHeader("Authorization") String authHeader) {
+        try {
+            User user = getUserFromToken(authHeader);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("imageUrl", user.getProfileImageUrl());
+            response.put("hasImage", user.getProfileImageUrl() != null);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    // ============================================
+    // LISTING IMAGES
+    // ============================================
+
+    /**
+     * Uploader une image pour une annonce
+     * POST /api/images/listing/{listingId}
+     */
+    @PostMapping("/listing/{listingId}")
+    public ResponseEntity<?> uploadListingImage(
+            @PathVariable Long listingId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "isPrincipale", defaultValue = "false") boolean isPrincipale,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            User user = getUserFromToken(authHeader);
+
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("Aucun fichier sélectionné"));
+            }
+
+            ListingImage image = imageService.saveListingImage(
+                    listingId, user.getId(), file, isPrincipale
+            );
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -61,35 +149,42 @@ public class ImageController {
 
     /**
      * Uploader plusieurs images en une fois
-     * POST /api/images/upload-multiple/{listingId}
+     * POST /api/images/listing/{listingId}/multiple
      */
-    @PostMapping("/upload-multiple/{listingId}")
-    public ResponseEntity<?> uploadMultipleImages(@PathVariable Long listingId,
-                                                  @RequestParam("files") MultipartFile[] files,
-                                                  @RequestHeader("User-ID") Long userId) {
+    @PostMapping("/listing/{listingId}/multiple")
+    public ResponseEntity<?> uploadMultipleImages(
+            @PathVariable Long listingId,
+            @RequestParam("files") MultipartFile[] files,
+            @RequestHeader("Authorization") String authHeader) {
         try {
+            User user = getUserFromToken(authHeader);
+
             if (files.length == 0) {
                 return ResponseEntity.badRequest()
                         .body(createErrorResponse("Aucun fichier sélectionné"));
             }
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", files.length + " images uploadées");
+            int successCount = 0;
+            int errorCount = 0;
 
-            // Uploader chaque fichier
             for (int i = 0; i < files.length; i++) {
                 MultipartFile file = files[i];
-                boolean isPrincipale = (i == 0); // La première image devient principale
+                boolean isPrincipale = (i == 0); // Première image = principale
 
                 try {
-                    ListingImage image = imageService.saveImage(listingId, file, isPrincipale);
-                    // Log success pour chaque image
+                    imageService.saveListingImage(listingId, user.getId(), file, isPrincipale);
+                    successCount++;
                 } catch (Exception e) {
-                    // Log error mais continue avec les autres images
-                    System.err.println("Erreur upload image " + i + ": " + e.getMessage());
+                    errorCount++;
+                    System.err.println("❌ Erreur upload image " + i + ": " + e.getMessage());
                 }
             }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", successCount + " images uploadées");
+            response.put("successCount", successCount);
+            response.put("errorCount", errorCount);
 
             return ResponseEntity.ok(response);
 
@@ -110,6 +205,7 @@ public class ImageController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
+            response.put("count", images.size());
             response.put("images", images.stream()
                     .map(this::createImageResponse).toList());
 
@@ -131,11 +227,16 @@ public class ImageController {
             ListingImage mainImage = imageService.getMainImage(listingId);
 
             if (mainImage == null) {
-                return ResponseEntity.notFound().build();
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("hasMainImage", false);
+                response.put("image", null);
+                return ResponseEntity.ok(response);
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
+            response.put("hasMainImage", true);
             response.put("image", createImageResponse(mainImage));
 
             return ResponseEntity.ok(response);
@@ -147,72 +248,16 @@ public class ImageController {
     }
 
     /**
-     * Servir une image (affichage)
-     * GET /api/images/view/{filename}
-     */
-    @GetMapping("/view/{filename}")
-    public ResponseEntity<Resource> viewImage(@PathVariable String filename) {
-        try {
-            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists()) {
-                // Déterminer le type de contenu
-                String contentType = "image/jpeg"; // Par défaut
-                if (filename.toLowerCase().endsWith(".png")) {
-                    contentType = "image/png";
-                } else if (filename.toLowerCase().endsWith(".gif")) {
-                    contentType = "image/gif";
-                } else if (filename.toLowerCase().endsWith(".webp")) {
-                    contentType = "image/webp";
-                }
-
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Télécharger une image
-     * GET /api/images/download/{filename}
-     */
-    @GetMapping("/download/{filename}")
-    public ResponseEntity<Resource> downloadImage(@PathVariable String filename) {
-        try {
-            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists()) {
-                return ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Supprimer une image
+     * Supprimer une image de listing
      * DELETE /api/images/{imageId}
      */
     @DeleteMapping("/{imageId}")
-    public ResponseEntity<?> deleteImage(@PathVariable Long imageId,
-                                         @RequestHeader("User-ID") Long userId) {
+    public ResponseEntity<?> deleteImage(
+            @PathVariable Long imageId,
+            @RequestHeader("Authorization") String authHeader) {
         try {
-            imageService.deleteImage(imageId, userId);
+            User user = getUserFromToken(authHeader);
+            imageService.deleteListingImage(imageId, user.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -231,10 +276,12 @@ public class ImageController {
      * POST /api/images/{imageId}/set-main
      */
     @PostMapping("/{imageId}/set-main")
-    public ResponseEntity<?> setAsMainImage(@PathVariable Long imageId,
-                                            @RequestHeader("User-ID") Long userId) {
+    public ResponseEntity<?> setAsMainImage(
+            @PathVariable Long imageId,
+            @RequestHeader("Authorization") String authHeader) {
         try {
-            imageService.setAsMainImage(imageId, userId);
+            User user = getUserFromToken(authHeader);
+            imageService.setAsMainImage(imageId, user.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -253,10 +300,13 @@ public class ImageController {
      * POST /api/images/listing/{listingId}/reorder
      */
     @PostMapping("/listing/{listingId}/reorder")
-    public ResponseEntity<?> reorderImages(@PathVariable Long listingId,
-                                           @RequestBody Map<String, Object> request,
-                                           @RequestHeader("User-ID") Long userId) {
+    public ResponseEntity<?> reorderImages(
+            @PathVariable Long listingId,
+            @RequestBody Map<String, Object> request,
+            @RequestHeader("Authorization") String authHeader) {
         try {
+            User user = getUserFromToken(authHeader);
+
             @SuppressWarnings("unchecked")
             List<Long> imageIds = (List<Long>) request.get("imageIds");
 
@@ -265,7 +315,7 @@ public class ImageController {
                         .body(createErrorResponse("Liste des IDs d'images requise"));
             }
 
-            imageService.reorderImages(listingId, imageIds, userId);
+            imageService.reorderImages(listingId, imageIds, user.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -279,49 +329,35 @@ public class ImageController {
         }
     }
 
+    // ============================================
+    // STATISTICS
+    // ============================================
+
     /**
      * Obtenir les statistiques des images
      * GET /api/images/stats
      */
     @GetMapping("/stats")
-    public ResponseEntity<?> getImageStats() {
+    public ResponseEntity<?> getImageStats(@RequestHeader("Authorization") String authHeader) {
         try {
+            // Vérifier que l'utilisateur est authentifié
+            getUserFromToken(authHeader);
+
             Long totalStorage = imageService.getTotalStorageUsed();
             Double averageSize = imageService.getAverageFileSize();
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("totalStorageUsed", totalStorage);
-            response.put("averageFileSize", averageSize);
+            response.put("totalStorageBytes", totalStorage);
+            response.put("averageFileSizeBytes", averageSize);
 
-            // Convertir en MB pour plus de lisibilité
+            // Convertir en unités lisibles
             if (totalStorage != null) {
-                response.put("totalStorageMB", totalStorage / (1024 * 1024));
+                response.put("totalStorageMB", String.format("%.2f", totalStorage / (1024.0 * 1024.0)));
             }
             if (averageSize != null) {
-                response.put("averageFileSizeKB", averageSize / 1024);
+                response.put("averageFileSizeKB", String.format("%.2f", averageSize / 1024.0));
             }
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(createErrorResponse(e.getMessage()));
-        }
-    }
-
-    /**
-     * Vérifier les limites d'upload pour un utilisateur
-     * GET /api/images/upload-limits/{listingId}
-     */
-    @GetMapping("/upload-limits/{listingId}")
-    public ResponseEntity<?> getUploadLimits(@PathVariable Long listingId,
-                                             @RequestHeader("User-ID") Long userId) {
-        try {
-            // TODO: Implémenter la vérification des limites selon le plan utilisateur
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Vérification des limites non implémentée");
 
             return ResponseEntity.ok(response);
 
@@ -335,31 +371,66 @@ public class ImageController {
     // MÉTHODES UTILITAIRES
     // ============================================
 
+    /**
+     * Extraire l'utilisateur du token JWT
+     */
+    private User getUserFromToken(String authHeader) {
+        String token = extractTokenFromHeader(authHeader);
+        return authService.validateTokenAndGetUser(token);
+    }
+
+    /**
+     * Extraire le token de l'en-tête Authorization
+     */
+    private String extractTokenFromHeader(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        throw new RuntimeException("Token d'autorisation manquant ou format invalide");
+    }
+
+    /**
+     * Créer une réponse image formatée
+     */
     private Map<String, Object> createImageResponse(ListingImage image) {
         Map<String, Object> response = new HashMap<>();
         response.put("id", image.getId());
-        response.put("url", image.getUrl());
+        response.put("url", image.getUrl()); // URL directe Backblaze B2
         response.put("nomFichier", image.getNomFichier());
         response.put("tailleFichier", image.getTailleFichier());
         response.put("ordreAffichage", image.getOrdreAffichage());
         response.put("isPrincipale", image.getIsPrincipale());
         response.put("dateUpload", image.getDateUpload());
 
-        // URL complète pour affichage
-        response.put("viewUrl", "/api/images/view/" + extractFilename(image.getUrl()));
-        response.put("downloadUrl", "/api/images/download/" + extractFilename(image.getUrl()));
+        // Taille formatée
+        if (image.getTailleFichier() != null) {
+            response.put("tailleFichierFormatted", formatFileSize(image.getTailleFichier()));
+        }
 
         return response;
     }
 
-    private String extractFilename(String url) {
-        return url.substring(url.lastIndexOf("/") + 1);
+    /**
+     * Formater la taille du fichier
+     */
+    private String formatFileSize(int bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.1f KB", bytes / 1024.0);
+        } else {
+            return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        }
     }
 
+    /**
+     * Créer une réponse d'erreur standardisée
+     */
     private Map<String, Object> createErrorResponse(String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
         response.put("message", message);
+        response.put("timestamp", System.currentTimeMillis());
         return response;
     }
 }

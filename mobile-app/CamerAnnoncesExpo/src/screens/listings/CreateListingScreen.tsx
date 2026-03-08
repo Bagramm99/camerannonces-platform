@@ -14,7 +14,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { api } from '../../services/api';
+import { imageService } from '../../services/imageService';
 import { categoryService, Category } from '../../services/categoryService';
+import ImagePicker from '../../components/ImagePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CreateListingScreen = ({ navigation }) => {
@@ -28,12 +30,17 @@ const CreateListingScreen = ({ navigation }) => {
         ville: '',
         telephone_contact: '',
     });
+
+    // ✅ : State für Bilder
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
+    const [uploadingImages, setUploadingImages] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+
     const [loading, setLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [categories, setCategories] = useState<Category[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Kategorien vom Backend laden
     useEffect(() => {
         loadCategories();
     }, []);
@@ -81,12 +88,48 @@ const CreateListingScreen = ({ navigation }) => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // ✅ NOUVEAU: Upload images après création listing
+    const uploadImagesForListing = async (listingId: number) => {
+        if (selectedImages.length === 0) {
+            return { success: true, message: 'Aucune image à uploader' };
+        }
+
+        setUploadingImages(true);
+        try {
+            const result = await imageService.uploadMultipleListingImages(
+                listingId,
+                selectedImages,
+                (current, total) => {
+                    setUploadProgress({ current, total });
+                }
+            );
+
+            if (result.errorCount > 0) {
+                console.warn(`⚠️ ${result.errorCount} images non uploadées`);
+            }
+
+            return {
+                success: true,
+                message: `${result.successCount} image(s) uploadée(s)`,
+            };
+        } catch (error: any) {
+            console.error('❌ Image upload error:', error);
+            return {
+                success: false,
+                message: error.message || 'Erreur upload images',
+            };
+        } finally {
+            setUploadingImages(false);
+            setUploadProgress({ current: 0, total: 0 });
+        }
+    };
+
     const handleSubmit = async () => {
         if (!validateForm()) return;
 
         setLoading(true);
         try {
-            // ✅ Backend erwartet camelCase!
+            // 1️⃣ Créer le listing
             const payload = {
                 categoryId: formData.category_id,
                 titre: formData.titre.trim(),
@@ -98,35 +141,55 @@ const CreateListingScreen = ({ navigation }) => {
                 telephoneContact: formData.telephone_contact.trim(),
             };
 
-            console.log('📤 Envoi au backend:', payload);
-
-            // 🔍 DEBUG: Token prüfen
-            const token = await AsyncStorage.getItem('access_token');
-            console.log('🔑 Token beim POST:', token ? 'VORHANDEN ✅' : 'FEHLT ❌');
-            console.log('🔑 Token Start:', token?.substring(0, 30));
+            console.log('📤 Création listing:', payload);
 
             const response = await api.post('/listings', payload);
+            const listingId = response.data.listing?.id;
 
-            console.log('✅ Réponse backend:', response.data);
-
-            if (response.status === 201 || response.status === 200) {
-                Alert.alert(
-                    'Succès',
-                    'Votre annonce a été publiée avec succès !',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => {
-                                navigation.navigate('MainTabs', { screen: 'Accueil' });
-                            }
-                        }
-                    ]
-                );
+            if (!listingId) {
+                throw new Error('ID du listing non reçu');
             }
-        } catch (error) {
-            console.error('❌ Erreur complète:', error);
+
+            console.log('✅ Listing créé, ID:', listingId);
+
+            // 2️⃣ Upload images si présentes
+            if (selectedImages.length > 0) {
+                console.log(`📸 Upload de ${selectedImages.length} image(s)...`);
+                const uploadResult = await uploadImagesForListing(listingId);
+
+                if (!uploadResult.success) {
+                    // Listing créé mais images échouées
+                    Alert.alert(
+                        'Annonce publiée',
+                        `Votre annonce est en ligne mais ${uploadResult.message}`,
+                        [
+                            {
+                                text: 'OK',
+                                onPress: () => navigation.navigate('MainTabs', { screen: 'Accueil' })
+                            }
+                        ]
+                    );
+                    return;
+                }
+            }
+
+            // 3️⃣ Succès complet
+            Alert.alert(
+                'Succès',
+                selectedImages.length > 0
+                    ? `Annonce publiée avec ${selectedImages.length} photo(s) !`
+                    : 'Annonce publiée avec succès !',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('MainTabs', { screen: 'Accueil' })
+                    }
+                ]
+            );
+
+        } catch (error: any) {
+            console.error('❌ Erreur:', error);
             console.error('❌ Response:', error.response?.data);
-            console.error('❌ Status:', error.response?.status);
 
             let errorMessage = 'Impossible de publier l\'annonce.';
 
@@ -136,8 +199,6 @@ const CreateListingScreen = ({ navigation }) => {
                 errorMessage = 'Vous devez être connecté pour publier.';
             } else if (error.response?.status === 400) {
                 errorMessage = 'Données invalides. Vérifiez tous les champs.';
-            } else if (!error.response) {
-                errorMessage = 'Pas de connexion au serveur. Vérifiez votre réseau.';
             }
 
             Alert.alert('Erreur', errorMessage);
@@ -178,6 +239,14 @@ const CreateListingScreen = ({ navigation }) => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.form}>
+
+                    {/* ✅: Image Picker */}
+                    <ImagePicker
+                        images={selectedImages}
+                        onImagesChange={setSelectedImages}
+                        maxImages={5}
+                        title="Photos de l'annonce"
+                    />
 
                     {/* Catégorie */}
                     <View style={styles.inputContainer}>
@@ -253,14 +322,10 @@ const CreateListingScreen = ({ navigation }) => {
                             keyboardType="numeric"
                         />
 
-                        {/* Prix négociable Checkbox */}
                         <View style={styles.checkboxContainer}>
                             <TouchableOpacity
                                 style={styles.checkboxRow}
-                                onPress={() => {
-                                    const newValue = !formData.prix_negociable;
-                                    handleInputChange('prix_negociable', newValue);
-                                }}
+                                onPress={() => handleInputChange('prix_negociable', !formData.prix_negociable)}
                                 activeOpacity={0.7}
                             >
                                 <View style={[
@@ -331,13 +396,26 @@ const CreateListingScreen = ({ navigation }) => {
                         )}
                     </View>
 
+                    {/* ✅: Upload Progress */}
+                    {uploadingImages && (
+                        <View style={styles.uploadProgress}>
+                            <ActivityIndicator size="small" color="#0066CC" />
+                            <Text style={styles.uploadProgressText}>
+                                Upload images: {uploadProgress.current} / {uploadProgress.total}
+                            </Text>
+                        </View>
+                    )}
+
                     {/* Bouton publier */}
                     <TouchableOpacity
-                        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                        style={[
+                            styles.submitButton,
+                            (loading || uploadingImages) && styles.submitButtonDisabled
+                        ]}
                         onPress={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || uploadingImages}
                     >
-                        {loading ? (
+                        {(loading || uploadingImages) ? (
                             <ActivityIndicator size="small" color="#fff" />
                         ) : (
                             <>
@@ -522,6 +600,22 @@ const styles = StyleSheet.create({
     },
     conditionTextActive: {
         color: '#fff',
+        fontWeight: '600',
+    },
+    // ✅  Styles
+    uploadProgress: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        backgroundColor: '#f0f7ff',
+        borderRadius: 10,
+        marginBottom: 20,
+    },
+    uploadProgressText: {
+        marginLeft: 10,
+        fontSize: 14,
+        color: '#0066CC',
         fontWeight: '600',
     },
     submitButton: {

@@ -1,8 +1,10 @@
 package com.camerannonces.controller;
 
 import com.camerannonces.entity.Listing;
+import com.camerannonces.entity.ListingImage;
 import com.camerannonces.enums.EtatProduit;
 import com.camerannonces.enums.ListingStatus;
+import com.camerannonces.repository.ListingImageRepository;
 import com.camerannonces.service.ListingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,9 @@ public class ListingController {
 
     @Autowired
     private ListingService listingService;
+
+    @Autowired
+    private ListingImageRepository listingImageRepository;
 
     /**
      * Créer une nouvelle annonce
@@ -353,6 +358,15 @@ public class ListingController {
         response.put("paiementCash", listing.getPaiementCash());
         response.put("paiementMobileMoney", listing.getPaiementMobileMoney());
         response.put("paiementVirement", listing.getPaiementVirement());
+        response.put("isPremium", listing.getIsPremium());
+        response.put("isUrgent", listing.getIsUrgent());
+        response.put("isVerified", listing.getIsVerified());
+
+        // ✅ : Ajouter les images
+        List<ListingImage> images = listingImageRepository.findByListingIdOrderByOrdreAffichage(listing.getId());
+        response.put("images", images.stream()
+                .map(this::createImageResponse)
+                .toList());
 
         // Ajouter les infos de l'utilisateur
         Map<String, Object> userInfo = new HashMap<>();
@@ -360,6 +374,7 @@ public class ListingController {
         userInfo.put("nom", listing.getUser().getNom());
         userInfo.put("isBoutique", listing.getUser().getIsBoutique());
         userInfo.put("nomBoutique", listing.getUser().getNomBoutique());
+        userInfo.put("dateCreation", listing.getUser().getDateCreation());
         response.put("user", userInfo);
 
         // Ajouter les infos de la catégorie
@@ -369,6 +384,21 @@ public class ListingController {
         categoryInfo.put("emoji", listing.getCategory().getEmoji());
         response.put("category", categoryInfo);
 
+        return response;
+    }
+
+    /**
+     * ✅ : Créer une réponse image
+     */
+    private Map<String, Object> createImageResponse(ListingImage image) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", image.getId());
+        response.put("url", image.getUrl());
+        response.put("nomFichier", image.getNomFichier());
+        response.put("tailleFichier", image.getTailleFichier());
+        response.put("isPrincipale", image.getIsPrincipale());
+        response.put("ordreAffichage", image.getOrdreAffichage());
+        response.put("dateUpload", image.getDateUpload());
         return response;
     }
 

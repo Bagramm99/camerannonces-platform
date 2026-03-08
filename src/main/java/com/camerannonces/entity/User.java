@@ -34,6 +34,10 @@ public class User {
     @Column(length = 50)
     private String quartier;
 
+    // ✅ PROFILE IMAGE
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     @Column(name = "is_boutique")
     private Boolean isBoutique = false;
 
@@ -139,6 +143,10 @@ public class User {
 
     public String getQuartier() { return quartier; }
     public void setQuartier(String quartier) { this.quartier = quartier; }
+
+    // ✅ PROFILE IMAGE GETTER/SETTER
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
     public Boolean getIsBoutique() { return isBoutique; }
     public void setIsBoutique(Boolean isBoutique) { this.isBoutique = isBoutique; }
