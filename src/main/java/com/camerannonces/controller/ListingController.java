@@ -31,7 +31,7 @@ public class ListingController {
 
     /**
      * Créer une nouvelle annonce
-     * POST /api/listings
+     * POST /api/listing
      */
     @PostMapping
     public ResponseEntity<?> createListing(@RequestBody Map<String, Object> request,
