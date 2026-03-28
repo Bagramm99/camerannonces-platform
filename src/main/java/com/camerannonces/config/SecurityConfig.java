@@ -53,6 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/listings/*/view").permitAll()
                         .requestMatchers("GET", "/api/listings/**").permitAll()
 
+                        //  Images endpoints (authentifiziert)
+                        .requestMatchers("/api/images/**").authenticated()
+
                         // Endpoints protégés (authentification requise)
                         .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers("/api/favorites/**").authenticated()
@@ -60,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("PUT", "/api/listings/**").authenticated()
                         .requestMatchers("DELETE", "/api/listings/**").authenticated()
 
-                        // Tous les autres endpoints sont protégés
+                        // Tous les autres endpoints sont protégés.
                         .anyRequest().authenticated()
                 )
 
