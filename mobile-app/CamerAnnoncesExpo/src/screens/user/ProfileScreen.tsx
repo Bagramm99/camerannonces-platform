@@ -8,24 +8,31 @@ import {
     ScrollView,
     Alert,
     ActivityIndicator,
+    Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as ImagePicker from 'expo-image-picker';
 import { NavigationProp } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
+import { userService } from '../../services/userService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Types
 interface User {
+    id?: number;
     nom?: string;
+    email?: string;
     telephone?: string;
     ville?: string;
-    planActuel?: 'GRATUIT' | 'PREMIUM';
+    quartier?: string;
+    planActuel?: 'GRATUIT' | 'BASIC' | 'PRO' | 'BOUTIQUE';
+    profileImageUrl?: string;
+    isBoutique?: boolean;
 }
 
 interface ProfileScreenProps {
     navigation: NavigationProp<any>;
 }
 
-// Theme constants
 const COLORS = {
     primary: '#0066CC',
     secondary: '#f8f9fa',
@@ -35,11 +42,197 @@ const COLORS = {
     error: '#ff4444',
     border: '#f0f0f0',
     shadow: '#000',
+    success: '#00C851',
 } as const;
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
-    const { user, logout } = useAuth();
+    const { user: authUser, logout } = useAuth();
+    const [user, setUser] = useState<User | null>(authUser);
     const [loading, setLoading] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    // Load fresh user data on mount
+    useEffect(() => {
+        loadUserData();
+    }, []);
+
+    const loadUserData = async () => {
+        try {
+            setLoading(true);
+            // ✅ FIXED: Use AuthContext user directly (no API call needed)
+            setUser(authUser);
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            setUser(authUser);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePickImage = async () => {
+        try {
+            // Request permissions
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+            if (status !== 'granted') {
+                Alert.alert(
+                    'Permission requise',
+                    'Nous avons besoin de votre permission pour accéder à la galerie.'
+                );
+                return;
+            }
+
+            // Show options: Gallery or Camera
+            Alert.alert(
+                'Choisir une photo',
+                'Sélectionnez une source',
+                [
+                    {
+                        text: 'Galerie',
+                        onPress: () => pickImageFromGallery(),
+                    },
+                    {
+                        text: 'Appareil photo',
+                        onPress: () => pickImageFromCamera(),
+                    },
+                    {
+                        text: 'Annuler',
+                        style: 'cancel',
+                    },
+                ]
+            );
+        } catch (error) {
+            console.error('Error requesting permissions:', error);
+        }
+    };
+
+    const pickImageFromGallery = async () => {
+        try {
+            console.log('📱 Opening gallery...');
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: false,  // ✅ GEÄNDERT: false
+                quality: 0.8,
+            });
+
+            console.log('📸 Gallery result:', JSON.stringify(result, null, 2));
+
+            if (!result.canceled && result.assets && result.assets[0]) {
+                console.log('✅ Image selected:', result.assets[0].uri);
+                await uploadProfileImage(result.assets[0].uri);
+            } else {
+                console.log('❌ Image selection cancelled or no assets');
+            }
+        } catch (error) {
+            console.error('❌ Error picking image from gallery:', error);
+            Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
+        }
+    };
+
+    const pickImageFromCamera = async () => {
+        try {
+            console.log('📷 Requesting camera permission...');
+
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+            if (status !== 'granted') {
+                console.log('❌ Camera permission denied');
+                Alert.alert(
+                    'Permission requise',
+                    'Nous avons besoin de votre permission pour accéder à l\'appareil photo.'
+                );
+                return;
+            }
+
+            console.log('✅ Camera permission granted, opening camera...');
+
+            const result = await ImagePicker.launchCameraAsync({
+                allowsEditing: false,  // ✅ GEÄNDERT: false
+                quality: 0.8,
+            });
+
+            console.log('📸 Camera result:', JSON.stringify(result, null, 2));
+
+            if (!result.canceled && result.assets && result.assets[0]) {
+                console.log('✅ Photo captured:', result.assets[0].uri);
+                await uploadProfileImage(result.assets[0].uri);
+            } else {
+                console.log('❌ Photo capture cancelled or no assets');
+            }
+        } catch (error) {
+            console.error('❌ Error picking image from camera:', error);
+            Alert.alert('Erreur', 'Impossible de prendre la photo');
+        }
+    };
+
+    const uploadProfileImage = async (imageUri: string) => {
+        try {
+            setUploadingImage(true);
+            console.log('📤 Starting upload for:', imageUri);
+
+            const result = await userService.uploadProfileImage(imageUri);
+
+            console.log('✅ Upload complete! URL:', result.url);
+
+            // Update local state
+            setUser(prev => prev ? { ...prev, profileImageUrl: result.url } : null);
+
+            // Update AsyncStorage
+            const updatedUser = { ...user, profileImageUrl: result.url };
+            await AsyncStorage.setItem('user_data', JSON.stringify(updatedUser));
+
+            console.log('✅ AsyncStorage updated');
+
+            Alert.alert('Succès', 'Photo de profil mise à jour !');
+        } catch (error: any) {
+            console.error('❌ Upload error:', error);
+            console.error('❌ Error message:', error.message);
+            Alert.alert(
+                'Erreur',
+                error.message || 'Impossible de télécharger l\'image'
+            );
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const handleDeleteProfileImage = async () => {
+        Alert.alert(
+            'Supprimer la photo',
+            'Êtes-vous sûr de vouloir supprimer votre photo de profil ?',
+            [
+                { text: 'Annuler', style: 'cancel' },
+                {
+                    text: 'Supprimer',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setUploadingImage(true);
+                            console.log('🗑️ Deleting profile image...');
+
+                            await userService.deleteProfileImage();
+
+                            // Update local state
+                            setUser(prev => prev ? { ...prev, profileImageUrl: undefined } : null);
+
+                            // Update AsyncStorage
+                            const updatedUser = { ...user, profileImageUrl: undefined };
+                            await AsyncStorage.setItem('user_data', JSON.stringify(updatedUser));
+
+                            console.log('✅ Profile image deleted');
+                            Alert.alert('Succès', 'Photo de profil supprimée');
+                        } catch (error) {
+                            console.error('❌ Error deleting image:', error);
+                            Alert.alert('Erreur', 'Impossible de supprimer la photo');
+                        } finally {
+                            setUploadingImage(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const handleLogout = useCallback(() => {
         Alert.alert(
@@ -54,7 +247,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                         try {
                             setLoading(true);
                             await logout();
-                            // Navigation wird automatisch durch AuthContext gehandhabt
                         } catch (error) {
                             console.error('Logout error:', error);
                             Alert.alert(
@@ -85,38 +277,60 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator
-                    size="large"
-                    color={COLORS.primary}
-                    accessibilityLabel="Chargement"
-                />
+                <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
 
     return (
         <ScrollView style={styles.container}>
-            {/* Header utilisateur */}
+            {/* Header avec photo de profil */}
             <View style={styles.header}>
-                <View
-                    style={styles.avatar}
-                    accessibilityLabel={`Avatar de ${user?.nom || 'l\'utilisateur'}`}
-                >
-                    <Text style={styles.avatarText}>
-                        {user?.nom?.charAt(0).toUpperCase() || 'U'}
-                    </Text>
+                <View style={styles.avatarContainer}>
+                    {user?.profileImageUrl ? (
+                        <Image
+                            source={{ uri: user.profileImageUrl }}
+                            style={styles.avatarImage}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>
+                                {user?.nom?.charAt(0).toUpperCase() || 'U'}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Upload/Edit Button */}
+                    <TouchableOpacity
+                        style={styles.editAvatarButton}
+                        onPress={handlePickImage}
+                        disabled={uploadingImage}
+                    >
+                        {uploadingImage ? (
+                            <ActivityIndicator size="small" color={COLORS.white} />
+                        ) : (
+                            <Icon name="camera-alt" size={20} color={COLORS.white} />
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Delete Button (only if image exists) */}
+                    {user?.profileImageUrl && !uploadingImage && (
+                        <TouchableOpacity
+                            style={styles.deleteAvatarButton}
+                            onPress={handleDeleteProfileImage}
+                        >
+                            <Icon name="delete" size={18} color={COLORS.white} />
+                        </TouchableOpacity>
+                    )}
                 </View>
+
                 <Text style={styles.userName}>{user?.nom || 'Utilisateur'}</Text>
                 {user?.telephone && (
                     <Text style={styles.userPhone}>{user.telephone}</Text>
                 )}
                 {user?.ville && (
-                    <Text
-                        style={styles.userLocation}
-                        accessibilityLabel={`Localisation: ${user.ville}`}
-                    >
-                        📍 {user.ville}
-                    </Text>
+                    <Text style={styles.userLocation}>📍 {user.ville}</Text>
                 )}
             </View>
 
@@ -125,8 +339,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => navigateToScreen('MyListings')}
-                    accessibilityLabel="Accéder à mes annonces"
-                    accessibilityRole="button"
                 >
                     <Icon name="list" size={24} color={COLORS.primary} />
                     <Text style={styles.menuText}>Mes annonces</Text>
@@ -136,8 +348,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => navigateToScreen('EditProfile')}
-                    accessibilityLabel="Modifier le profil"
-                    accessibilityRole="button"
                 >
                     <Icon name="person" size={24} color={COLORS.primary} />
                     <Text style={styles.menuText}>Modifier le profil</Text>
@@ -147,8 +357,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => navigateToScreen('Notifications')}
-                    accessibilityLabel="Voir les notifications"
-                    accessibilityRole="button"
                 >
                     <Icon name="notifications" size={24} color={COLORS.primary} />
                     <Text style={styles.menuText}>Notifications</Text>
@@ -158,8 +366,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => navigateToScreen('Help')}
-                    accessibilityLabel="Accéder à l'aide et au support"
-                    accessibilityRole="button"
                 >
                     <Icon name="help" size={24} color={COLORS.primary} />
                     <Text style={styles.menuText}>Aide & Support</Text>
@@ -169,8 +375,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => navigateToScreen('Settings')}
-                    accessibilityLabel="Accéder aux paramètres"
-                    accessibilityRole="button"
                 >
                     <Icon name="settings" size={24} color={COLORS.primary} />
                     <Text style={styles.menuText}>Paramètres</Text>
@@ -182,14 +386,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <View style={styles.planSection}>
                 <Text style={styles.planTitle}>Plan actuel</Text>
                 <View style={styles.planCard}>
-                    <Text
-                        style={styles.planName}
-                        accessibilityLabel={`Plan actuel: ${user?.planActuel || 'GRATUIT'}`}
-                    >
+                    <Text style={styles.planName}>
                         {user?.planActuel || 'GRATUIT'}
                     </Text>
                     <Text style={styles.planDescription}>
-                        {user?.planActuel === 'PREMIUM' ? 'Annonces illimitées' : '3 annonces/mois'}
+                        {user?.planActuel === 'PRO' || user?.planActuel === 'BOUTIQUE'
+                            ? 'Annonces illimitées'
+                            : user?.planActuel === 'BASIC'
+                                ? '15 annonces/mois'
+                                : '5 annonces/mois'}
                     </Text>
                 </View>
             </View>
@@ -198,12 +403,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleLogout}
-                accessibilityLabel="Se déconnecter de l'application"
-                accessibilityRole="button"
             >
                 <Icon name="logout" size={20} color={COLORS.white} />
                 <Text style={styles.logoutText}>Se déconnecter</Text>
             </TouchableOpacity>
+
+            <View style={styles.bottomSpacing} />
         </ScrollView>
     );
 };
@@ -225,24 +430,60 @@ const styles = StyleSheet.create({
         paddingVertical: 40,
         paddingHorizontal: 20,
     },
+    avatarContainer: {
+        position: 'relative',
+        marginBottom: 15,
+    },
     avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
         backgroundColor: COLORS.white,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 15,
         shadowColor: COLORS.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 3,
     },
+    avatarImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 3,
+        borderColor: COLORS.white,
+    },
     avatarText: {
-        fontSize: 32,
+        fontSize: 40,
         fontWeight: 'bold',
         color: COLORS.primary,
+    },
+    editAvatarButton: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: COLORS.primary,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: COLORS.white,
+    },
+    deleteAvatarButton: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: COLORS.error,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: COLORS.white,
     },
     userName: {
         fontSize: 24,
@@ -326,11 +567,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 15,
-        marginVertical: 12,
-        marginBottom: 70,
-        paddingVertical: 20,
+        marginVertical: 20,
+        paddingVertical: 15,
         borderRadius: 10,
-        minHeight: 48,
         shadowColor: COLORS.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -342,6 +581,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         marginLeft: 8,
+    },
+    bottomSpacing: {
+        height: 80,
     },
 });
 
