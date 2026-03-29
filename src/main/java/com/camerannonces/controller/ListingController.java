@@ -311,6 +311,76 @@ public class ListingController {
         }
     }
 
+    /**
+     * Obtenir les annonces de l'utilisateur connecté
+     * GET /api/listings/user/me
+     */
+    @GetMapping("/user/me")
+    public ResponseEntity<?> getMyListings(@RequestAttribute("userId") Long userId,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "20") int size) {
+        try {
+            System.out.println("📋 Loading listings for user: " + userId);
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Listing> listings = listingService.getUserListings(userId, pageable);
+
+            System.out.println("✅ Found " + listings.getTotalElements() + " listings");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("listings", listings.getContent().stream()
+                    .map(this::createListingSummaryResponse).toList());
+            response.put("totalElements", listings.getTotalElements());
+            response.put("totalPages", listings.getTotalPages());
+            response.put("currentPage", page);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error loading user listings: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Obtenir les annonces d'un utilisateur spécifique (profil public)
+     * GET /api/listings/user/{targetUserId}
+     */
+    @GetMapping("/user/{targetUserId}")
+    public ResponseEntity<?> getUserListings(@PathVariable("targetUserId") Long targetUserId,
+                                             @RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "20") int size) {
+        try {
+            System.out.println("📋 Loading public listings for user: " + targetUserId);
+
+            Pageable pageable = PageRequest.of(page, size);
+
+            // Nur aktive Listings für öffentliche Profile
+            Page<Listing> listings = listingService.getUserActiveListings(targetUserId, pageable);
+
+            System.out.println("✅ Found " + listings.getTotalElements() + " active listings");
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("listings", listings.getContent().stream()
+                    .map(this::createListingSummaryResponse).toList());
+            response.put("totalElements", listings.getTotalElements());
+            response.put("totalPages", listings.getTotalPages());
+            response.put("currentPage", page);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error loading public user listings: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
     // ============================================
     // MÉTHODES UTILITAIRES
     // ============================================

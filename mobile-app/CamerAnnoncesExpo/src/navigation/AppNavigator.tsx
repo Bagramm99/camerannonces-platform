@@ -6,6 +6,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { View, ActivityIndicator, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../contexts/AuthContext';
+import EditListingScreen from '../screens/listings/EditListingScreen';
 
 // Screens
 import HomeScreen from '../screens/main/HomeScreen';
@@ -184,6 +185,16 @@ const AppNavigator = () => {
                                 component={ListingDetailScreen}
                                 options={{
                                     title: 'Détail Annonce',
+                                    headerShown: true,
+                                    headerStyle: { backgroundColor: '#0066CC' },
+                                    headerTintColor: '#fff',
+                                }}
+                            />
+                            <Stack.Screen
+                                name="EditListing"
+                                component={EditListingScreen}
+                                options={{
+                                    title: 'Modifier l\'annonce',
                                     headerShown: true,
                                     headerStyle: { backgroundColor: '#0066CC' },
                                     headerTintColor: '#fff',

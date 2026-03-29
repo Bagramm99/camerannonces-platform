@@ -4,6 +4,7 @@ import com.camerannonces.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -44,29 +45,60 @@ public class SecurityConfig {
 
                 // Configuration des autorisations
                 .authorizeHttpRequests(authz -> authz
-                        // Endpoints publics (pas d'authentification)
+                        // ========================================
+                        // ENDPOINTS PUBLICS (KEINE AUTHENTIFIZIERUNG)
+                        // ========================================
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
                         .requestMatchers("/api/cities/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
-                        .requestMatchers("/api/listings/*/view").permitAll()
-                        .requestMatchers("GET", "/api/listings/**").permitAll()
 
-                        //  Images endpoints (authentifiziert)
+                        // ========================================
+                        // LISTINGS - ÖFFENTLICHE ENDPOINTS
+                        // ========================================
+                        // Einzelnes Listing ansehen (GET)
+                        .requestMatchers(HttpMethod.GET, "/api/listings/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/listings/{id}/similar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/listings/category/{categoryId}").permitAll()
+
+                        // Alle Listings auflisten (GET)
+                        .requestMatchers(HttpMethod.GET, "/api/listings").permitAll()
+
+                        // ========================================
+                        // LISTINGS - GESCHÜTZTE ENDPOINTS
+                        // ========================================
+                        // User-spezifische Listings (AUTHENTIFIZIERT)
+                        .requestMatchers("/api/listings/user/me").authenticated()
+                        .requestMatchers("/api/listings/user/{userId}").authenticated()
+
+                        // Listing Management (AUTHENTIFIZIERT)
+                        .requestMatchers(HttpMethod.POST, "/api/listings").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/listings/{id}/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/listings/{id}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/listings/{id}").authenticated()
+
+                        // ========================================
+                        // IMAGES (AUTHENTIFIZIERT)
+                        // ========================================
                         .requestMatchers("/api/images/**").authenticated()
 
-                        // Endpoints protégés (authentification requise)
+                        // ========================================
+                        // USERS (AUTHENTIFIZIERT)
+                        // ========================================
+                        .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/user/**").authenticated()
-                        .requestMatchers("/api/favorites/**").authenticated()
-                        .requestMatchers("POST", "/api/listings").authenticated()
-                        .requestMatchers("PUT", "/api/listings/**").authenticated()
-                        .requestMatchers("DELETE", "/api/listings/**").authenticated()
 
-                        // Tous les autres endpoints sont protégés.
+                        // ========================================
+                        // FAVORITES (AUTHENTIFIZIERT)
+                        // ========================================
+                        .requestMatchers("/api/favorites/**").authenticated()
+
+                        // ========================================
+                        // ALLE ANDEREN (AUTHENTIFIZIERT)
+                        // ========================================
                         .anyRequest().authenticated()
                 )
-
                 // Configuration de session (stateless pour JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 

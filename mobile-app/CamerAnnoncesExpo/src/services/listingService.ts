@@ -147,6 +147,35 @@ class ListingService {
             throw error;
         }
     }
+
+    async updateListing(listingId: number, data: {
+        titre?: string;
+        description?: string;
+        prix?: number | null;
+        prixNegociable?: boolean;
+        etatProduit?: string;
+        ville?: string;
+        telephoneContact?: string;
+        categoryId?: number;
+    }): Promise<Listing> {
+        try {
+            console.log('📤 Updating listing:', listingId, data);
+            const response = await api.put(`/listings/${listingId}`, data);
+            return normalizeListing(response.data.listing || response.data);
+        } catch (error) {
+            console.error('❌ Error updating listing:', error);
+            throw error;
+        }
+    }
+
+    async deleteListing(listingId: number): Promise<void> {
+        try {
+            await api.delete(`/listings/${listingId}`);
+        } catch (error) {
+            console.error('❌ Error deleting listing:', error);
+            throw error;
+        }
+    }
 }
 
 export const listingService = new ListingService();
