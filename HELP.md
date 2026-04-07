@@ -34,3 +34,40 @@ parent.
 To prevent this, the project POM contains empty overrides for these elements.
 If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
 
+=================================================
+⏳ WAS NOCH FEHLT (Nächste Prioritäten)
+🔥 HIGH PRIORITY:
+
+ProfileScreen - Profilbild Upload
+
+Screen noch nicht erstellt
+Backend Endpoint existiert bereits: POST /api/images/profile
+Nutzer kann Profilbild hochladen/ändern
+
+
+Listing Edit Screen
+
+Bestehende Anzeigen bearbeiten
+Bilder hinzufügen/löschen/neu sortieren
+Backend Endpoint existiert: PUT /api/listings/{id}
+
+---------------------------------------VOICI LA PROCHAINE ETAPE A FAIRE 
+CLAUDE A DEJA GENE TU PEUX LIRE SUR SA PAGE
+------------------------------------------
+SendGrid Email Integration
+
+API Key SendGrid: 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
+
+
+Africa's Talking Production
+
+Aktuell: Sandbox Mode
+Needed: Production für echte SMS
+
+
+Advanced Search & Filters
+
+Preis-Range Filter
+Zustand Filter
+Ort Filter
+====================================================

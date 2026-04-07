@@ -119,6 +119,13 @@
             <version>2.11.0</version>
         </dependency>
 
+        <!-- ✅ SENDGRID EMAIL SERVICE -->
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.10.2</version>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
