@@ -1,6 +1,16 @@
 # ============================================
+# SENSIBLE DATEIEN (NIEMALS COMMITTEN!)
+# ============================================
+**/application.properties
+**/application-*.properties
+!**/application.properties.example
+.env
+*.env
+
+# ============================================
 # BACKEND (Spring Boot)
 # ============================================
+target/
 backend/target/
 backend/*.jar
 backend/*.war

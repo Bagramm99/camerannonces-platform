@@ -1,0 +1,74 @@
+# ============================================
+# TEMPLATE FÜR APPLICATION.PROPERTIES
+# ============================================
+# WICHTIG: 
+# 1. Kopiere diese Datei zu "application.properties"
+# 2. Ersetze alle PLATZHALTER mit echten Werten
+# 3. Die echte application.properties wird NICHT committet!
+# ============================================
+
+spring.application.name=camerannonces-backend
+
+# Configuration du serveur
+server.port=8082
+server.address=0.0.0.0
+
+# Configuration de la base de données PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/CAMERANNONCES
+spring.datasource.username=postgres
+spring.datasource.password=DEIN_POSTGRES_PASSWORD_HIER
+
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Configuration JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+# Configuration du profil
+spring.profiles.active=dev
+
+# Taille max des fichiers uploadés
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=50MB
+
+# ============================================
+# CONFIGURATION JWT
+# ============================================
+jwt.secret=DEIN_JWT_SECRET_HIER
+jwt.access-token.expiration=604800000
+jwt.refresh-token.expiration=604800000
+jwt.issuer=camerannonces-platform
+jwt.enabled=true
+
+# ============================================
+# AFRICA'S TALKING SMS
+# ============================================
+africastalking.username=sandbox
+africastalking.api-key=DEIN_AFRICAS_TALKING_API_KEY_HIER
+
+# ============================================
+# BACKBLAZE B2 CLOUD STORAGE
+# ============================================
+backblaze.keyId=DEIN_BACKBLAZE_KEY_ID_HIER
+backblaze.applicationKey=DEIN_BACKBLAZE_APP_KEY_HIER
+backblaze.bucketName=camerannonces-images
+backblaze.endpoint=https://s3.eu-central-003.backblazeb2.com
+backblaze.region=eu-central-003
+
+# Image Upload Settings
+upload.max-file-size=5242880
+upload.allowed-types=image/jpeg,image/png,image/jpg,image/webp
+upload.thumbnail-size=300
+
+# ============================================
+# SENDGRID EMAIL SERVICE
+# ============================================
+sendgrid.api.key=DEIN_SENDGRID_API_KEY_HIER
+sendgrid.from.email=camerannonces@outlook.com
+sendgrid.from.name=CamerAnnonces
+
+# Email Verification Settings
+email.verification.expiration=600000
+email.verification.code-length=4
